@@ -43,6 +43,7 @@ public:
         data_view = data->view();
     }
 
+    //fills the grid with initial conditions as per PFHub benchmark 1
     void fill_initial() {
         Cajita::grid_parallel_for(
             "initialize", exec_space(), *local_grid, Cajita::Ghost(), Cajita::Cell(),
@@ -53,16 +54,26 @@ public:
             }
         );
     }
+
+    //Returns the current concentrate at a given grid point
+    double get_c(int i, int j) {
+        return data_view(i, j, 0);
+    }
 };
 
+#ifndef BUILD_FOR_TESTS
 int main( int argc, char* argv[] ) {
     MPI_Init( &argc, &argv );
     {
         Kokkos::ScopeGuard scope_guard( argc, argv );
         PfHubProblem simulation;
         simulation.fill_initial();
+        for(int i=0; i<10; i++) {
+            std::cout << simulation.get_c(i, 0) << std::endl;
+        }
     }
     MPI_Finalize();
     std::cout << "done" << std::endl;
     return 0;
 }
+#endif
