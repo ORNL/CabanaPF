@@ -68,9 +68,6 @@ int main( int argc, char* argv[] ) {
         Kokkos::ScopeGuard scope_guard( argc, argv );
         PfHubProblem simulation;
         simulation.fill_initial();
-        for(int i=0; i<10; i++) {
-            std::cout << simulation.get_c(i, 0) << std::endl;
-        }
     }
     MPI_Finalize();
     std::cout << "done" << std::endl;
