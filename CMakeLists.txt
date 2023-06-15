@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
 project(CabanaPF)
 find_package(Cabana)
+find_package(GTest)
 
-add_executable(CabanaPF main.cpp)
-target_link_libraries(CabanaPF Cabana::cabanacore)
+add_subdirectory(examples)
+
+add_subdirectory(unit_test)
