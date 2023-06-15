@@ -7,16 +7,14 @@ BUILD_DIR="$CABANA_DIR/build"
 function b() {
     cd $BUILD_DIR
     cmake $CABANA_DIR
-    make CabanaPF
+    make PFHub1a
     make Test
 }
 function r() {
-    cd $BUILD_DIR
-    ./CabanaPF
+    /home/kokkos/src/CabanaPF/build/examples/PFHub1a
 }
 function t() {
-    cd $BUILD_DIR
-    ./Test
+    /home/kokkos/src/CabanaPF/build/unit_test/Test
 }
 
 if [ ! -d "$BUILD_DIR" ]; then

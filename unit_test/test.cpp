@@ -1,10 +1,12 @@
 #include <gtest/gtest.h>
 #include <Cabana_Core.hpp>
 #include <Cajita.hpp>
-#include "main.cpp"
 
+#include <PFHub.hpp>
+
+using namespace CabanaPF;
 TEST(PFHub1a, Initialization) {
-    PfHubProblem simulation;
+    PfHubProblem simulation(96);    //96x96 grid
     simulation.fill_initial();
     //check 4 points for basic indexing/results:
     EXPECT_DOUBLE_EQ(0.53, simulation.get_c(0, 0));
