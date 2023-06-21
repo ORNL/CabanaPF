@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.20)
 project(CabanaPF)
 find_package(Cabana)
 find_package(GTest)
