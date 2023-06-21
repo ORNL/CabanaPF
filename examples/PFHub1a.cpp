@@ -7,8 +7,9 @@ int main(int argc, char* argv[]) {
         Kokkos::ScopeGuard scope_guard( argc, argv );
         CabanaPF::PfHubProblem simulation(96);
         simulation.fill_initial();
+        simulation.timestep(.5, 500);
         for (int i=0; i<10; i++) {
-            std::cout << "Initial value at (" << i << "," << i << "): " << simulation.get_c(i, i) << std::endl;
+            std::cout << "Final value at (" << i << "," << i << "): " << simulation.get_c(i, i) << std::endl;
         }
     }
     MPI_Finalize();
