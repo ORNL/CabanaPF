@@ -1,4 +1,3 @@
-include_directories(../src)
-add_executable(Test test.cpp)
-target_link_libraries(Test Cabana::Cajita)
-target_link_libraries(Test GTest::GTest)
+add_executable(CabanaPF_Test_PFHub1a test.cpp)
+target_link_libraries(CabanaPF_Test_PFHub1a LINK_PUBLIC CabanaPF GTest::GTest)
+add_test(NAME PFHub1a COMMAND ${NONMPI_PRECOMMAND} CabanaPF_Test_PFHub1a)
