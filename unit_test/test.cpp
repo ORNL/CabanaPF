@@ -3,6 +3,8 @@
 #include <Cajita.hpp>
 
 #include <PFHub.hpp>
+//#include <PFVariables.hpp>
+#include <Physics.hpp>
 
 using namespace CabanaPF;
 
@@ -71,6 +73,25 @@ TEST(PFHub1a, AllTimestep) {
     EXPECT_NEAR(0.42797151413455203, simulation.get_c(40, 78), 1e-9);
     EXPECT_NEAR(0.6966615561225524, simulation.get_c(70, 72), 1e-9);
     EXPECT_NEAR(0.6482746495041702, simulation.get_c(67, 7), 1e-9);
+}
+
+TEST(experiment, experiment) {
+    auto global_mesh = Cajita::createUniformGlobalMesh(
+        std::array<double, 2> {0, 0},
+        std::array<double, 2> {6, 6},  //a SIZE*SIZE square
+        std::array<int, 2> {3, 3}          //that has a GRID_POINTS*GRID_POINTS square mesh
+    );
+    Cajita::DimBlockPartitioner<2> partitioner;
+    auto global_grid = Cajita::createGlobalGrid(MPI_COMM_WORLD, global_mesh, std::array<bool, 2>{true, true}, partitioner);
+    auto local_grid = Cajita::createLocalGrid( global_grid, 0 );
+    auto layout = createArrayLayout(local_grid, 2, Cajita::Cell());
+    PFVariables vars(layout, std::array<std::string, 3> {"a", "b", "c"});
+    for(int i=0; i<3; i++) {
+        for(int j=0; j<3; j++) {
+            vars[0](i, j, 0) = i+j;
+            vars[0](i, j, 1) = 0;
+        }
+    }
 }
 
 int main(int argc, char** argv) {
