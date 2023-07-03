@@ -3,6 +3,7 @@
 
 #include <Cajita.hpp>
 #include <fstream>
+#include <filesystem>
 
 namespace CabanaPF {
 
@@ -14,7 +15,7 @@ class PFVariables {
     using View_type = std::conditional_t<3 == NumSpaceDim, Kokkos::View<double****>, Kokkos::View<double***>>;
 private:
     std::unordered_map<std::string, int> name_lookup;
-    std::array<int, NumSpaceDim> array_size;
+    std::array<int, NumSpaceDim> array_size;    //number of x, y, (and possibly z) points
 public:
     std::array<CajitaArray, NumVariables> arrays;
 
@@ -35,8 +36,26 @@ public:
         return arrays[index]->view();
     }
 
-    void save(const int index, const int timestep) {
-        Cajita::Experimental::BovWriter::writeTimeStep(timestep, 0, *arrays[index]);
+    //TODO: Load from config file?
+    static inline const std::string SAVE_PATH = "/home/kokkos/src/CabanaPF/results/";
+    //If unfinished and just saving progress, pass in timesteps_done
+    void save(std::string problem_name, const int timesteps_done = -1) {
+        for(int i=0; i<NumVariables; i++) {
+            Cajita::Experimental::BovWriter::writeTimeStep(999999, 0, *arrays[i]);  //use 999999 to mark it for move
+            try {
+                std::string old_name = "grid_" + arrays[i]->label() + "_999999.dat";
+                std::stringstream new_name;
+                new_name << SAVE_PATH << problem_name << "_" << arrays[i]->label();
+                if (timesteps_done > -1) {  //incomplete simulation, mark as such
+                    new_name << ".tmp" << timesteps_done;
+                }
+                new_name << ".dat";
+                std::filesystem::rename(old_name, new_name.str());
+                //TODO: Deal with the .bov file?
+            } catch (std::filesystem::filesystem_error &e) {
+                std::cerr << "Error when saving: " << e.what() << std::endl;
+            }
+        }
     }
 };
 
