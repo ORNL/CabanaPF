@@ -75,21 +75,31 @@ TEST(PFHub1a, AllTimestep) {
     EXPECT_NEAR(0.6482746495041702, simulation.get_c(67, 7), 1e-9);
 }
 
-TEST(experiment, experiment) {
+TEST(PFVariables, saveload) {
     auto global_mesh = Cajita::createUniformGlobalMesh(
         std::array<double, 2> {0, 0},
-        std::array<double, 2> {6, 6},  //a SIZE*SIZE square
-        std::array<int, 2> {3, 3}          //that has a GRID_POINTS*GRID_POINTS square mesh
+        std::array<double, 2> {6, 6},
+        std::array<int, 2> {3, 3}
     );
     Cajita::DimBlockPartitioner<2> partitioner;
     auto global_grid = Cajita::createGlobalGrid(MPI_COMM_WORLD, global_mesh, std::array<bool, 2>{true, true}, partitioner);
     auto local_grid = Cajita::createLocalGrid( global_grid, 0 );
     auto layout = createArrayLayout(local_grid, 2, Cajita::Cell());
-    PFVariables vars(layout, std::array<std::string, 3> {"a", "b", "c"});
+    PFVariables vars(layout, std::array<std::string, 1> {"a"});
     for(int i=0; i<3; i++) {
         for(int j=0; j<3; j++) {
-            vars[0](i, j, 0) = i+j;
-            vars[0](i, j, 1) = 0;
+            vars[0](i, j, 0) = 10*i+j;
+            vars[0](i, j, 1) = -.0005;
+        }
+    }
+    vars.save("Test", 0);
+
+    PFVariables from_file(layout, std::array<std::string, 1> {"a"});
+    from_file.load("Test", 0);
+    for (int i=0; i<3; i++) {
+        for (int j=0; j<3; j++) {
+            EXPECT_EQ(vars[0](i, j, 0), from_file[0](i, j, 0));
+            EXPECT_EQ(vars[0](i, j, 1), from_file[0](i, j, 1));
         }
     }
 }

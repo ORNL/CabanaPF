@@ -38,27 +38,70 @@ public:
 
     //TODO: Load from config file?
     static inline const std::string SAVE_PATH = "/home/kokkos/src/CabanaPF/results/";
+    std::string save_name(std::string run_name, const int index, const int timesteps_done = -1) {
+        std::stringstream name;
+        name << SAVE_PATH << run_name << "_" << arrays[index]->label();
+        if (timesteps_done > -1) {  //incomplete simulation, mark as such
+            name << ".tmp" << timesteps_done;
+        }
+        name << ".dat";
+        return name.str();
+    }
+
     //If unfinished and just saving progress, pass in timesteps_done
-    void save(std::string problem_name, const int timesteps_done = -1) {
+    void save(std::string run_name, const int timesteps_done = -1) {
         for(int i=0; i<NumVariables; i++) {
             Cajita::Experimental::BovWriter::writeTimeStep(999999, 0, *arrays[i]);  //use 999999 to mark it for move
             try {
                 std::string old_name = "grid_" + arrays[i]->label() + "_999999.dat";
-                std::stringstream new_name;
-                new_name << SAVE_PATH << problem_name << "_" << arrays[i]->label();
-                if (timesteps_done > -1) {  //incomplete simulation, mark as such
-                    new_name << ".tmp" << timesteps_done;
-                }
-                new_name << ".dat";
-                std::filesystem::rename(old_name, new_name.str());
+                std::filesystem::rename(old_name, save_name(run_name, i, timesteps_done));
                 //TODO: Deal with the .bov file?
             } catch (std::filesystem::filesystem_error &e) {
                 std::cerr << "Error when saving: " << e.what() << std::endl;
             }
         }
     }
+
+    void load(std::string run_name, const int timesteps_done = -1) {
+        for (int index=0; index<NumVariables; index++) {
+            assert(NumSpaceDim==2);    //currently not supported for 3D
+            //open the file:
+            std::fstream infile(save_name(run_name, index, timesteps_done), std::fstream::in|std::fstream::binary);
+            //read it:
+            const auto view = arrays[index]->view();
+            double buffer[2];
+            //for (int k=0; k < (NumSpaceDim<3 ? 1 : array_size[2]); k++) {
+                for (int j=0; j<array_size[1]; j++) {
+                    for (int i=0; i<array_size[0]; i++) {
+                        infile.read((char*)buffer, 2*sizeof(double));
+                        //loadHelper(view, i, j, k, buffer);
+                        view(i, j, 0) = buffer[0];
+                        view(i, j, 1) = buffer[1];
+                    }
+                }
+            //}
+        }
+    }
 };
 
+/*Not sure why this doesn't work
+template<std::size_t NumVariables>
+class PFVariables<2, NumVariables> {
+private:
+    void loadHelper(Kokkos::View<double***> &view, int i, int j, int k, double *buffer) {
+        view(i, j, 0) = buffer[0];
+        view(i, j, 1) = buffer[1];
+    }
+};
+template<std::size_t NumVariables>
+class PFVariables<3, NumVariables> {
+private:
+    void loadHelper(Kokkos::View<double****> &view, int i, int j, int k, double *buffer) {
+        view(i, j, k, 0) = buffer[0];
+        view(i, j, k, 1) = buffer[1];
+    }
+};
+*/
 }
 
 #endif
