@@ -20,7 +20,9 @@ public:
         PFVariables<NumSpaceDim, NumVariables> partials) = 0;
 };
 
-class PFHubOne : public Physics<2, 1> {
+//class PFHubOne : public Physics<2, 1> {
+class PFHubOne {
+    using cdouble = std::complex<double>;
 public:
     std::array<std::string, 1> variables() {
         return {"c"};

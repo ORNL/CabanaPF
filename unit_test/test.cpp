@@ -3,8 +3,8 @@
 #include <Cajita.hpp>
 
 #include <PFHub.hpp>
-//#include <PFVariables.hpp>
-#include <Physics.hpp>
+#include <PFVariables.hpp>
+//#include <simulation.hpp>
 
 using namespace CabanaPF;
 
@@ -102,6 +102,23 @@ TEST(PFVariables, saveload) {
             EXPECT_EQ(vars[0](i, j, 1), from_file[0](i, j, 1));
         }
     }
+}
+
+TEST(experiment, experiment) {
+    auto global_mesh = Cajita::createUniformGlobalMesh(
+        std::array<double, 2> {0, 0},
+        std::array<double, 2> {200, 200},
+        std::array<int, 2> {96, 96}
+    );
+    Cajita::DimBlockPartitioner<2> partitioner;
+    auto global_grid = Cajita::createGlobalGrid(MPI_COMM_WORLD, global_mesh, std::array<bool, 2>{true, true}, partitioner);
+    auto local_grid = Cajita::createLocalGrid( global_grid, 0 );
+    auto layout = createArrayLayout(local_grid, 2, Cajita::Cell());
+    PFVariables from_file(layout, std::array<std::string, 1> {"concentration"});
+
+    from_file.load("PFHub1a_N96T2000");
+    EXPECT_EQ(0.5214689225639189, from_file[0](0, 0, 0));
+    EXPECT_EQ(0.49527507173039187, from_file[0](95, 95, 0));
 }
 
 int main(int argc, char** argv) {

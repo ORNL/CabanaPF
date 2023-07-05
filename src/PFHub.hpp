@@ -6,6 +6,8 @@
 #include <cmath>
 #include <complex>
 
+#include <PFVariables.hpp>
+
 namespace CabanaPF
 {
 const double PFHUB_1A_SIZE = 200.0;
@@ -18,10 +20,14 @@ const double C_ALPHA = .3;
 const double C_BETA = .7;
 
 //This will probably get moved into an "Initializer" class once we have more problems
-double PFHUB_INITIAL(double x, double y) {
+/*double PFHUB_INITIAL(double x, double y) {
     return C0 + EPSILON*(std::cos(.105*x)*std::cos(.11*y)
     + std::pow(std::cos(.13*x)*std::cos(.087*y), 2)
     + std::cos(.025*x-.15*y)*std::cos(.07*x-.02*y));
+}*/
+
+double PFHUB_INITIAL(double x, double y) {
+    return C0 + EPSILON*(std::cos(M_PI*x/50)*std::cos(M_PI*y/100));
 }
 
 class PfHubProblem {
@@ -123,6 +129,10 @@ public:
             //leave Fourier space:
             fft->reverse(*concentration, Cajita::Experimental::FFTScaleFull());
         }
+        CabanaPF::PFVariables<2,1> pfv(concentration);
+        std::stringstream ss;
+        ss << "PFHub1a_N" << grid_points << "T" << timesteps;
+        pfv.save(ss.str());
     }
 };
 }

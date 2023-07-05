@@ -32,6 +32,10 @@ public:
         }
     }
 
+    PFVariables(CajitaArray arr) {
+        arrays[0] = arr;
+    }
+
     View_type operator[](int index) {
         return arrays[index]->view();
     }
