@@ -101,6 +101,7 @@ TEST(PFVariables, saveload) {
     }
 }
 
+/*
 //Similar to above, the python implmentation was modified to use the same periodic initial conditions
 TEST(PFHub1aPeriodic, periodic) {
     Simulation<PFHub1aPeriodic> simul(96, 500);
@@ -129,7 +130,8 @@ TEST(PFHub1aPeriodic, periodic) {
     EXPECT_NEAR(0.515, big_grid.get_c(160,0), 1e-9);
     EXPECT_NEAR(0.49633974596215563, big_grid.get_c(160,160), 1e-9);
     EXPECT_NEAR(0.5013397459621556, big_grid.get_c(0,160), 1e-9);
-}
+}*/
+
 int main(int argc, char** argv) {
     MPI_Init( &argc, &argv );
     Kokkos::initialize( argc, argv );

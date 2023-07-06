@@ -47,7 +47,9 @@ public:
             //initialize c:
             const double x = cell_size*i;
             const double y = cell_size*j;
-            c(i, j, 0) = C0 + EPSILON*(std::cos(x*M_PI/50.) + std::cos(y*M_PI/100.));
+            c(i, j, 0) = C0 + EPSILON*(std::cos(.105*x)*std::cos(.11*y)
+                + std::pow(std::cos(.13*x)*std::cos(.087*y), 2)
+                + std::cos(.025*x-.15*y)*std::cos(.07*x-.02*y));
             c(i, j, 1) = 0;
         };
     }
