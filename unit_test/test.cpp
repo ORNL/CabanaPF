@@ -4,7 +4,7 @@
 
 #include <PFHub.hpp>
 #include <PFVariables.hpp>
-//#include <simulation.hpp>
+#include <simulation.hpp>
 
 using namespace CabanaPF;
 
@@ -15,8 +15,7 @@ These results that are being tested against come from the python implementation 
     Most points were randomly selected
 */
 TEST(PFHub1a, Initialization) {
-    PfHubProblem simulation(96);    //96x96 grid
-    simulation.fill_initial();
+    Simulation<PFHub1a> simulation(96, 500);
     //"true results" come from python implentation (see previous comment)
     //check 4 points for basic indexing/results:
     EXPECT_DOUBLE_EQ(0.53, simulation.get_c(0, 0));
@@ -38,9 +37,8 @@ TEST(PFHub1a, Initialization) {
 }
 
 TEST(PFHub1a, OneTimestep) {
-    PfHubProblem simulation(96);    //96x96 grid
-    simulation.fill_initial();
-    simulation.timestep(.5, 1);
+    Simulation<PFHub1a> simulation(96, 500);
+    simulation.timestep(1);
     //test at extreme points and 10 random points.  Correct values come from python implemtation (see above)
     EXPECT_DOUBLE_EQ(0.5214689225639189, simulation.get_c(0, 0));
     EXPECT_DOUBLE_EQ(0.49527507173039187, simulation.get_c(95, 95));
@@ -57,9 +55,8 @@ TEST(PFHub1a, OneTimestep) {
 }
 
 TEST(PFHub1a, AllTimestep) {
-    PfHubProblem simulation(96);    //96x96 grid
-    simulation.fill_initial();
-    simulation.timestep(.5, 500);
+    Simulation<PFHub1a> simulation(96, 500);
+    simulation.timestep(500);
     //as before, (0,0), (95,95), and 10 random points, testing against python
     EXPECT_NEAR(0.4412261765305555, simulation.get_c(0, 0), 1e-9);
     EXPECT_NEAR(0.3470514937291973, simulation.get_c(95, 95), 1e-9);
@@ -104,23 +101,35 @@ TEST(PFVariables, saveload) {
     }
 }
 
-TEST(experiment, experiment) {
-    auto global_mesh = Cajita::createUniformGlobalMesh(
-        std::array<double, 2> {0, 0},
-        std::array<double, 2> {200, 200},
-        std::array<int, 2> {96, 96}
-    );
-    Cajita::DimBlockPartitioner<2> partitioner;
-    auto global_grid = Cajita::createGlobalGrid(MPI_COMM_WORLD, global_mesh, std::array<bool, 2>{true, true}, partitioner);
-    auto local_grid = Cajita::createLocalGrid( global_grid, 0 );
-    auto layout = createArrayLayout(local_grid, 2, Cajita::Cell());
-    PFVariables from_file(layout, std::array<std::string, 1> {"concentration"});
+//Similar to above, the python implmentation was modified to use the same periodic initial conditions
+TEST(PFHub1aPeriodic, periodic) {
+    Simulation<PFHub1aPeriodic> simul(96, 500);
+    EXPECT_NEAR(0.52, simul.get_c(0, 0), 1e-8);
+    EXPECT_NEAR(0.515, simul.get_c(40,0), 1e-8);
+    EXPECT_NEAR(0.49633974596215563, simul.get_c(40,40), 1e-8);
+    EXPECT_NEAR(0.5013397459621556, simul.get_c(0,40), 1e-8);
 
-    from_file.load("PFHub1a_N96T2000");
-    EXPECT_EQ(0.5214689225639189, from_file[0](0, 0, 0));
-    EXPECT_EQ(0.49527507173039187, from_file[0](95, 95, 0));
+    simul.timestep(500);
+    EXPECT_NEAR(0.6899556834423245, simul.get_c(0, 0), 1e-8);
+    EXPECT_NEAR(0.710215729789399, simul.get_c(95, 95), 1e-8);
+    EXPECT_NEAR(0.6203452063008421, simul.get_c(31, 68), 1e-8);
+    EXPECT_NEAR(0.29988065061700286, simul.get_c(16, 91), 1e-8);
+    EXPECT_NEAR(0.3425650624685481, simul.get_c(62, 21), 1e-8);
+    EXPECT_NEAR(0.6352884582630192, simul.get_c(2, 79), 1e-8);
+    EXPECT_NEAR(0.29039495705145013, simul.get_c(73, 75), 1e-8);
+    EXPECT_NEAR(0.6102543428687541, simul.get_c(40, 11), 1e-8);
+    EXPECT_NEAR(0.6245817469274588, simul.get_c(85, 67), 1e-8);
+    EXPECT_NEAR(0.631637186261738, simul.get_c(40, 78), 1e-8);
+    EXPECT_NEAR(0.35473143197267865, simul.get_c(70, 72), 1e-8);
+    EXPECT_NEAR(0.6338012425033652, simul.get_c(67, 7), 1e-8);
+
+    //test setup on bigger grid:
+    Simulation<PFHub1aPeriodic> big_grid(4*96, 500);
+    EXPECT_NEAR(0.52, big_grid.get_c(0, 0), 1e-9);
+    EXPECT_NEAR(0.515, big_grid.get_c(160,0), 1e-9);
+    EXPECT_NEAR(0.49633974596215563, big_grid.get_c(160,160), 1e-9);
+    EXPECT_NEAR(0.5013397459621556, big_grid.get_c(0,160), 1e-9);
 }
-
 int main(int argc, char** argv) {
     MPI_Init( &argc, &argv );
     Kokkos::initialize( argc, argv );

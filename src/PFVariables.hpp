@@ -14,8 +14,9 @@ class PFVariables {
     using CajitaArray = std::shared_ptr<Cajita::Array<double, Cajita::Cell, Mesh, device_type>>;
     using View_type = std::conditional_t<3 == NumSpaceDim, Kokkos::View<double****>, Kokkos::View<double***>>;
 private:
-    std::unordered_map<std::string, int> name_lookup;
     std::array<int, NumSpaceDim> array_size;    //number of x, y, (and possibly z) points
+    std::shared_ptr<Cajita::Experimental::HeffteFastFourierTransform<
+        Cajita::Cell, Mesh, double, device_type, Cajita::Experimental::Impl::FFTBackendDefault>> fft_calculator;
 public:
     std::array<CajitaArray, NumVariables> arrays;
 
@@ -23,15 +24,24 @@ public:
         //create an array and store the name of each variable:
         for(int i=0; i<NumVariables; i++) {
             arrays[i] = Cajita::createArray<double, device_type>(names[i], layout);
-            name_lookup[names[i]] = i;
         }
         //Record the array size for each spatial dimension:
         const auto GlobalMesh = layout->localGrid()->globalGrid().globalMesh();
         for(int i=0; i<NumSpaceDim; i++) {
             array_size[i] = GlobalMesh.globalNumCell(i);
         }
+        fft_calculator = Cajita::Experimental::createHeffteFastFourierTransform<double, device_type>(*layout);
     }
 
+    void fft(int index) {
+        fft_calculator->forward(*arrays[index], Cajita::Experimental::FFTScaleNone());
+    }
+
+    void ifft(int index) {
+        fft_calculator->reverse(*arrays[index], Cajita::Experimental::FFTScaleFull());
+    }
+
+    //TODO: Remove
     PFVariables(CajitaArray arr) {
         arrays[0] = arr;
     }
