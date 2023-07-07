@@ -14,7 +14,6 @@ class Simulation {
     using exec_space = Kokkos::DefaultExecutionSpace;
     using device_type = exec_space::device_type;
     using Mesh = Cajita::UniformMesh<double, 2>;
-    using cdouble = std::complex<double>;
 private:
     int timesteps_done;
     std::shared_ptr<Cajita::LocalGrid<Mesh>> local_grid;

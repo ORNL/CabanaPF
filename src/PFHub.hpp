@@ -14,7 +14,7 @@ namespace CabanaPF {
 */
 class PFHub1aBase : public CabanaPF::IRunner<2, 2> {
 protected:
-    using cdouble = std::complex<double>;
+    using cdouble = Kokkos::complex<double>;
     using device_type = Kokkos::DefaultExecutionSpace::device_type;
     using Mesh = Cajita::UniformMesh<double, 2>;
     using Layout = std::shared_ptr<Cajita::ArrayLayout<Cajita::Cell, Mesh>>;
@@ -82,17 +82,17 @@ public:
         auto c = vars[0];   //get View for scope capture
         return KOKKOS_LAMBDA(const int i, const int j) {
             //setup laplacian:
-            const auto kx = std::complex<double>(0.0, 2*M_PI/grid_points)
+            const auto kx = cdouble(0.0, 2*M_PI/grid_points)
                     * static_cast<double>(i > grid_points/2 ? i - grid_points : 2*i == grid_points ? 0 : i);
-            const auto ky = std::complex<double>(0.0, 2*M_PI/grid_points)
+            const auto ky = cdouble(0.0, 2*M_PI/grid_points)
                 * static_cast<double>(j > grid_points/2 ? j - grid_points : 2*j == grid_points ? 0 : j);
             laplacian(i, j) = (kx*kx + ky*ky) * static_cast<double>(grid_points * grid_points) / (SIZE*SIZE);
             //initialize c:
             const double x = cell_size*i;
             const double y = cell_size*j;
-            c(i, j, 0) = C0 + EPSILON*(std::cos(.105*x)*std::cos(.11*y)
-                + std::pow(std::cos(.13*x)*std::cos(.087*y), 2)
-                + std::cos(.025*x-.15*y)*std::cos(.07*x-.02*y));
+            c(i, j, 0) = C0 + EPSILON*(Kokkos::cos(.105*x)*Kokkos::cos(.11*y)
+                + Kokkos::cos(.13*x)*Kokkos::cos(.087*y)*Kokkos::cos(.13*x)*Kokkos::cos(.087*y)
+                + Kokkos::cos(.025*x-.15*y)*Kokkos::cos(.07*x-.02*y));
             c(i, j, 1) = 0;
         };
     }
@@ -106,15 +106,15 @@ public:
         auto c = vars[0];   //get View for scope capture
         return KOKKOS_LAMBDA(const int i, const int j) {
             //setup laplacian:
-            const auto kx = std::complex<double>(0.0, 2*M_PI/grid_points)
+            const auto kx = cdouble(0.0, 2*M_PI/grid_points)
                     * static_cast<double>(i > grid_points/2 ? i - grid_points : 2*i == grid_points ? 0 : i);
-            const auto ky = std::complex<double>(0.0, 2*M_PI/grid_points)
+            const auto ky = cdouble(0.0, 2*M_PI/grid_points)
                 * static_cast<double>(j > grid_points/2 ? j - grid_points : 2*j == grid_points ? 0 : j);
             laplacian(i, j) = (kx*kx + ky*ky) * static_cast<double>(grid_points * grid_points) / (SIZE*SIZE);
             //initialize c:
             const double x = cell_size*i;
             const double y = cell_size*j;
-            c(i, j, 0) = C0 + EPSILON*(std::cos(x*M_PI/50.) + std::cos(y*M_PI/100.));
+            c(i, j, 0) = C0 + EPSILON*(Kokkos::cos(x*M_PI/50.) + Kokkos::cos(y*M_PI/100.));
             c(i, j, 1) = 0;
         };
     }
