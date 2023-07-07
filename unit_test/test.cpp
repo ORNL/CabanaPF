@@ -15,7 +15,7 @@ These results that are being tested against come from the python implementation 
     Most points were randomly selected
 */
 TEST(PFHub1a, Initialization) {
-    Simulation<PFHub1a> simulation(96, 500);
+    Simulation<PFHub1aBenchmark> simulation(96, 500);
     //"true results" come from python implentation (see previous comment)
     //check 4 points for basic indexing/results:
     EXPECT_DOUBLE_EQ(0.53, simulation.get_c(0, 0));
@@ -37,7 +37,7 @@ TEST(PFHub1a, Initialization) {
 }
 
 TEST(PFHub1a, OneTimestep) {
-    Simulation<PFHub1a> simulation(96, 500);
+    Simulation<PFHub1aBenchmark> simulation(96, 500);
     simulation.timestep(1);
     //test at extreme points and 10 random points.  Correct values come from python implemtation (see above)
     EXPECT_DOUBLE_EQ(0.5214689225639189, simulation.get_c(0, 0));
@@ -55,7 +55,7 @@ TEST(PFHub1a, OneTimestep) {
 }
 
 TEST(PFHub1a, AllTimestep) {
-    Simulation<PFHub1a> simulation(96, 500);
+    Simulation<PFHub1aBenchmark> simulation(96, 500);
     simulation.timestep(500);
     //as before, (0,0), (95,95), and 10 random points, testing against python
     EXPECT_NEAR(0.4412261765305555, simulation.get_c(0, 0), 1e-9);
@@ -101,7 +101,7 @@ TEST(PFVariables, saveload) {
     }
 }
 
-/*
+
 //Similar to above, the python implmentation was modified to use the same periodic initial conditions
 TEST(PFHub1aPeriodic, periodic) {
     Simulation<PFHub1aPeriodic> simul(96, 500);
@@ -130,7 +130,7 @@ TEST(PFHub1aPeriodic, periodic) {
     EXPECT_NEAR(0.515, big_grid.get_c(160,0), 1e-9);
     EXPECT_NEAR(0.49633974596215563, big_grid.get_c(160,160), 1e-9);
     EXPECT_NEAR(0.5013397459621556, big_grid.get_c(0,160), 1e-9);
-}*/
+}
 
 int main(int argc, char** argv) {
     MPI_Init( &argc, &argv );

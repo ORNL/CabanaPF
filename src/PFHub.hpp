@@ -8,12 +8,17 @@
 
 namespace CabanaPF {
 
-//The PFHub Benchmark 1a: Spinodal Decomposition (https://pages.nist.gov/pfhub/benchmarks/benchmark1.ipynb/)
-class PFHub1a : public CabanaPF::IRunner<2, 2> {
+/*The PFHub Benchmark 1a: Spinodal Decomposition (https://pages.nist.gov/pfhub/benchmarks/benchmark1.ipynb/).  We have two versions:
+    -PFHub1aBenchmark (which uses the actual benchmark initial conditions)
+    -PFHub1aPeriodic (which uses simpler periodic initial conditions)
+*/
+class PFHub1aBase : public CabanaPF::IRunner<2, 2> {
+protected:
     using cdouble = std::complex<double>;
     using device_type = Kokkos::DefaultExecutionSpace::device_type;
     using Mesh = Cajita::UniformMesh<double, 2>;
-protected:
+    using Layout = std::shared_ptr<Cajita::ArrayLayout<Cajita::Cell, Mesh>>;
+
     const double cell_size;
     const int timesteps;
     const int grid_points;
@@ -30,28 +35,9 @@ public:
     static constexpr double C_ALPHA = .3;
     static constexpr double C_BETA = .7;
 
-    PFHub1a(int grid_points, int timesteps, std::shared_ptr<Cajita::ArrayLayout<Cajita::Cell, Cajita::UniformMesh<double, 2UL>>> layout)
+    PFHub1aBase(int grid_points, int timesteps, Layout layout)
         : vars{layout, {"c", "df_dc"}}, cell_size{SIZE/grid_points}, timesteps{timesteps}, grid_points{grid_points} {
         laplacian = Kokkos::View<cdouble **> ("laplacian", grid_points, grid_points);
-    }
-
-    KokkosFunc initialize() override {
-        auto c = vars[0];   //get View for scope capture
-        return KOKKOS_LAMBDA(const int i, const int j) {
-            //setup laplacian:
-            const auto kx = std::complex<double>(0.0, 2*M_PI/grid_points)
-                    * static_cast<double>(i > grid_points/2 ? i - grid_points : 2*i == grid_points ? 0 : i);
-            const auto ky = std::complex<double>(0.0, 2*M_PI/grid_points)
-                * static_cast<double>(j > grid_points/2 ? j - grid_points : 2*j == grid_points ? 0 : j);
-            laplacian(i, j) = (kx*kx + ky*ky) * static_cast<double>(grid_points * grid_points) / (SIZE*SIZE);
-            //initialize c:
-            const double x = cell_size*i;
-            const double y = cell_size*j;
-            c(i, j, 0) = C0 + EPSILON*(std::cos(.105*x)*std::cos(.11*y)
-                + std::pow(std::cos(.13*x)*std::cos(.087*y), 2)
-                + std::cos(.025*x-.15*y)*std::cos(.07*x-.02*y));
-            c(i, j, 1) = 0;
-        };
     }
 
     KokkosFunc pre_step() {
@@ -90,8 +76,31 @@ public:
     }
 };
 
-//Same problem but with periodic initial conditions
-class PFHub1aPeriodic : public PFHub1a {
+class PFHub1aBenchmark : public PFHub1aBase {
+public:
+    KokkosFunc initialize() override {
+        auto c = vars[0];   //get View for scope capture
+        return KOKKOS_LAMBDA(const int i, const int j) {
+            //setup laplacian:
+            const auto kx = std::complex<double>(0.0, 2*M_PI/grid_points)
+                    * static_cast<double>(i > grid_points/2 ? i - grid_points : 2*i == grid_points ? 0 : i);
+            const auto ky = std::complex<double>(0.0, 2*M_PI/grid_points)
+                * static_cast<double>(j > grid_points/2 ? j - grid_points : 2*j == grid_points ? 0 : j);
+            laplacian(i, j) = (kx*kx + ky*ky) * static_cast<double>(grid_points * grid_points) / (SIZE*SIZE);
+            //initialize c:
+            const double x = cell_size*i;
+            const double y = cell_size*j;
+            c(i, j, 0) = C0 + EPSILON*(std::cos(.105*x)*std::cos(.11*y)
+                + std::pow(std::cos(.13*x)*std::cos(.087*y), 2)
+                + std::cos(.025*x-.15*y)*std::cos(.07*x-.02*y));
+            c(i, j, 1) = 0;
+        };
+    }
+
+    PFHub1aBenchmark(int grid_points, int timesteps, Layout layout) : PFHub1aBase{grid_points, timesteps, layout} {}
+};
+
+class PFHub1aPeriodic : public PFHub1aBase {
 public:
     KokkosFunc initialize() override {
         auto c = vars[0];   //get View for scope capture
@@ -109,6 +118,8 @@ public:
             c(i, j, 1) = 0;
         };
     }
+
+    PFHub1aPeriodic(int grid_points, int timesteps, Layout layout) : PFHub1aBase{grid_points, timesteps, layout} {}
 };
 
 }
