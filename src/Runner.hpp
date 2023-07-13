@@ -19,6 +19,8 @@ public:
     KokkosFunc post_step() {
         return nullptr;
     };
+    //also optional; called when the required number of timesteps have been done
+    void finalize() {}
 };
 
 }

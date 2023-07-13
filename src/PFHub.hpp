@@ -10,7 +10,7 @@ namespace CabanaPF {
 
 /*The PFHub Benchmark 1a: Spinodal Decomposition (https://pages.nist.gov/pfhub/benchmarks/benchmark1.ipynb/).  We have two versions:
     -PFHub1aBenchmark (which uses the actual benchmark initial conditions)
-    -PFHub1aPeriodic (which uses simpler periodic initial conditions)
+    -PFHub1aSimplePeriodic (which uses simpler periodic initial conditions)
 */
 class PFHub1aBase : public CabanaPF::IRunner<2, 2> {
 protected:
@@ -97,10 +97,16 @@ public:
         };
     }
 
+    void finalize() {
+        std::stringstream s;
+        s << "1aBenchmark_N" << grid_points << "T" << timesteps;
+        vars.save(0, s.str());
+    }
+
     PFHub1aBenchmark(int grid_points, int timesteps, Layout layout) : PFHub1aBase{grid_points, timesteps, layout} {}
 };
 
-class PFHub1aPeriodic : public PFHub1aBase {
+class PFHub1aSimplePeriodic : public PFHub1aBase {
 public:
     KokkosFunc initialize() override {
         auto c = vars[0];   //get View for scope capture
@@ -119,7 +125,13 @@ public:
         };
     }
 
-    PFHub1aPeriodic(int grid_points, int timesteps, Layout layout) : PFHub1aBase{grid_points, timesteps, layout} {}
+    void finalize() {
+        std::stringstream s;
+        s << "1aSimplePeriodic_N" << grid_points << "T" << timesteps;
+        vars.save(0, s.str());
+    }
+
+    PFHub1aSimplePeriodic(int grid_points, int timesteps, Layout layout) : PFHub1aBase{grid_points, timesteps, layout} {}
 };
 
 }

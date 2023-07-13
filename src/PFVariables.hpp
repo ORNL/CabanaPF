@@ -63,16 +63,14 @@ public:
     }
 
     //If unfinished and just saving progress, pass in timesteps_done
-    void save(std::string run_name, const int timesteps_done = -1) {
-        for(int i=0; i<NumVariables; i++) {
-            Cajita::Experimental::BovWriter::writeTimeStep(999999, 0, *arrays[i]);  //use 999999 to mark it for move
-            try {
-                std::string old_name = "grid_" + arrays[i]->label() + "_999999.dat";
-                std::filesystem::rename(old_name, save_name(run_name, i, timesteps_done));
-                //TODO: Deal with the .bov file?
-            } catch (std::filesystem::filesystem_error &e) {
-                std::cerr << "Error when saving: " << e.what() << std::endl;
-            }
+    void save(const int index, std::string run_name, const int timesteps_done = -1) {
+        Cajita::Experimental::BovWriter::writeTimeStep(999999, 0, *arrays[index]);  //use 999999 to mark it for move
+        try {
+            std::string old_name = "grid_" + arrays[index]->label() + "_999999.dat";
+            std::filesystem::rename(old_name, save_name(run_name, index, timesteps_done));
+            //TODO: Deal with the .bov file?
+        } catch (std::filesystem::filesystem_error &e) {
+            std::cerr << "Error when saving: " << e.what() << std::endl;
         }
     }
 

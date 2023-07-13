@@ -23,7 +23,7 @@ public:
     const int timesteps;
 
     Simulation(int grid_points, int timesteps)
-        : grid_points{grid_points}, timesteps{timesteps}
+        : grid_points{grid_points}, timesteps{timesteps}, timesteps_done{0}
     {
         //create global grid and mesh:
         auto global_mesh = Cajita::createUniformGlobalMesh(
@@ -59,6 +59,9 @@ public:
                 Cajita::grid_parallel_for("post_step", exec_space(), *local_grid, Cajita::Ghost(), Cajita::Cell(), post_step);
         }
         timesteps_done += count;
+        if (timesteps_done==timesteps) {
+            runner->finalize();
+        }
     }
 };
 

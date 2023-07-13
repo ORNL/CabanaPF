@@ -89,7 +89,7 @@ TEST(PFVariables, saveload) {
             vars[0](i, j, 1) = -.0005;
         }
     }
-    vars.save("Test", 0);
+    vars.save(0, "Test", 0);
 
     PFVariables from_file(layout, std::array<std::string, 1> {"a"});
     from_file.load("Test", 0);
@@ -101,10 +101,9 @@ TEST(PFVariables, saveload) {
     }
 }
 
-
 //Similar to above, the python implmentation was modified to use the same periodic initial conditions
-TEST(PFHub1aPeriodic, periodic) {
-    Simulation<PFHub1aPeriodic> simul(96, 500);
+TEST(PFHub1aSimplePeriodic, periodic) {
+    Simulation<PFHub1aSimplePeriodic> simul(96, 500);
     EXPECT_NEAR(0.52, simul.get_c(0, 0), 1e-8);
     EXPECT_NEAR(0.515, simul.get_c(40,0), 1e-8);
     EXPECT_NEAR(0.49633974596215563, simul.get_c(40,40), 1e-8);
@@ -125,7 +124,7 @@ TEST(PFHub1aPeriodic, periodic) {
     EXPECT_NEAR(0.6338012425033652, simul.get_c(67, 7), 1e-8);
 
     //test setup on bigger grid:
-    Simulation<PFHub1aPeriodic> big_grid(4*96, 500);
+    Simulation<PFHub1aSimplePeriodic> big_grid(4*96, 500);
     EXPECT_NEAR(0.52, big_grid.get_c(0, 0), 1e-9);
     EXPECT_NEAR(0.515, big_grid.get_c(160,0), 1e-9);
     EXPECT_NEAR(0.49633974596215563, big_grid.get_c(160,160), 1e-9);
