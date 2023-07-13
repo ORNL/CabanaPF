@@ -36,10 +36,10 @@ public:
 
         //create local stuff:
         local_grid = Cajita::createLocalGrid(global_grid, 0);
-        auto layout = createArrayLayout(local_grid, 2, Cajita::Cell()); //2: real & imag
+        auto layout = createArrayLayout(local_grid, 2, Cajita::Node()); //2: real & imag
         //create runner object and initialize variables
         runner = std::make_unique<Runner>(grid_points, timesteps, layout);
-        Cajita::grid_parallel_for("initialize", exec_space(), *local_grid, Cajita::Ghost(), Cajita::Cell(), runner->initialize());
+        Cajita::grid_parallel_for("initialize", exec_space(), *local_grid, Cajita::Own(), Cajita::Node(), runner->initialize());
     }
 
     double get_c(int i, int j) {
@@ -50,13 +50,13 @@ public:
         for(int i=0; i<count; i++) {
             const std::function<void(int, int)> pre_step = runner->pre_step();
             if (pre_step)   //don't run if nullptr
-                Cajita::grid_parallel_for("pre_step", exec_space(), *local_grid, Cajita::Ghost(), Cajita::Cell(), pre_step);
+                Cajita::grid_parallel_for("pre_step", exec_space(), *local_grid, Cajita::Own(), Cajita::Node(), pre_step);
             const std::function<void(int, int)> step = runner->step();
             if (step)
-                Cajita::grid_parallel_for("step", exec_space(), *local_grid, Cajita::Ghost(), Cajita::Cell(), step);
+                Cajita::grid_parallel_for("step", exec_space(), *local_grid, Cajita::Own(), Cajita::Node(), step);
             const std::function<void(int, int)> post_step = runner->post_step();
             if (post_step)
-                Cajita::grid_parallel_for("post_step", exec_space(), *local_grid, Cajita::Ghost(), Cajita::Cell(), post_step);
+                Cajita::grid_parallel_for("post_step", exec_space(), *local_grid, Cajita::Own(), Cajita::Node(), post_step);
         }
         timesteps_done += count;
         if (timesteps_done==timesteps) {

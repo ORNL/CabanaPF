@@ -17,7 +17,7 @@ protected:
     using cdouble = Kokkos::complex<double>;
     using device_type = Kokkos::DefaultExecutionSpace::device_type;
     using Mesh = Cajita::UniformMesh<double, 2>;
-    using Layout = std::shared_ptr<Cajita::ArrayLayout<Cajita::Cell, Mesh>>;
+    using Layout = std::shared_ptr<Cajita::ArrayLayout<Cajita::Node, Mesh>>;
 
     const double cell_size;
     const int timesteps;

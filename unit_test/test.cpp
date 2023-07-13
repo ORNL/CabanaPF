@@ -81,7 +81,7 @@ TEST(PFVariables, saveload) {
     Cajita::DimBlockPartitioner<2> partitioner;
     auto global_grid = Cajita::createGlobalGrid(MPI_COMM_WORLD, global_mesh, std::array<bool, 2>{true, true}, partitioner);
     auto local_grid = Cajita::createLocalGrid( global_grid, 0 );
-    auto layout = createArrayLayout(local_grid, 2, Cajita::Cell());
+    auto layout = createArrayLayout(local_grid, 2, Cajita::Node());
     PFVariables vars(layout, std::array<std::string, 1> {"a"});
     for(int i=0; i<3; i++) {
         for(int j=0; j<3; j++) {
