@@ -9,7 +9,7 @@ namespace CabanaPF {
 
 /*The PFHub Benchmark 1a: Spinodal Decomposition (https://pages.nist.gov/pfhub/benchmarks/benchmark1.ipynb/).  We have two versions:
     -PFHub1aBenchmark (which uses the actual benchmark initial conditions)
-    -PFHub1aSimplePeriodic (which uses simpler periodic initial conditions)
+    -PFHub1aPeriodic (which uses similar but periodic initial conditions)
 */
 class PFHub1aBase : public CabanaPFRunner<2> {
 protected:
@@ -23,13 +23,6 @@ protected:
 public:
     PFVariables<2, 2> vars;
     static constexpr double SIZE = 200.;
-    static constexpr double C0 = .5;
-    static constexpr double EPSILON = .01;
-    static constexpr double RHO = 5.0;
-    static constexpr double M = 5.0;
-    static constexpr double KAPPA = 2.0;
-    static constexpr double C_ALPHA = .3;
-    static constexpr double C_BETA = .7;
 
     PFHub1aBase(int grid_points, int timesteps) : CabanaPFRunner(grid_points, timesteps, SIZE),
         vars{layout, {"c", "df_dc"}}, cell_size{SIZE/grid_points}, timesteps{timesteps}, grid_points{grid_points}
@@ -64,7 +57,7 @@ public:
         const auto dfdc_view = vars[1];
         CABANAPF_PARALLEL("df_dc", KOKKOS_LAMBDA( const int i, const int j) {
             const cdouble c(c_view(i, j, 0), c_view(i, j, 1));
-            const cdouble df_dc = RHO * (2.0*(c-C_ALPHA)*(C_BETA-c)*(C_BETA-c) - 2.0*(C_BETA-c)*(c-C_ALPHA)*(c-C_ALPHA));
+            const cdouble df_dc = 5 * (2.0*(c-.3)*(.7-c)*(.7-c) - 2.0*(.7-c)*(c-.3)*(c-.3));
             dfdc_view(i, j, 0) = df_dc.real();
             dfdc_view(i, j, 1) = df_dc.imag();
         });
@@ -83,7 +76,7 @@ public:
             const cdouble df_dc_hat(df_dc(i, j, 0), df_dc(i, j, 1));
             cdouble c_hat(c(i, j, 0), c(i, j, 1));
 
-            c_hat = (c_hat + dt*M*laplacian(i, j)*df_dc_hat) / (1.0 + dt*M*KAPPA*laplacian(i, j)*laplacian(i, j));
+            c_hat = (c_hat + dt*5*laplacian(i, j)*df_dc_hat) / (1.0 + dt*5*2*laplacian(i, j)*laplacian(i, j));
             c(i, j, 0) = c_hat.real();
             c(i, j, 1) = c_hat.imag();
         });
@@ -103,7 +96,7 @@ public:
             //initialize c:
             const double x = cell_size*i;
             const double y = cell_size*j;
-            c(i, j, 0) = C0 + EPSILON*(Kokkos::cos(.105*x)*Kokkos::cos(.11*y)
+            c(i, j, 0) = .5 + .01*(Kokkos::cos(.105*x)*Kokkos::cos(.11*y)
                 + Kokkos::cos(.13*x)*Kokkos::cos(.087*y)*Kokkos::cos(.13*x)*Kokkos::cos(.087*y)
                 + Kokkos::cos(.025*x-.15*y)*Kokkos::cos(.07*x-.02*y));
             c(i, j, 1) = 0;
@@ -127,7 +120,7 @@ public:
             //initialize c:
             const double x = cell_size*i;
             const double y = cell_size*j;
-            c(i, j, 0) = C0 + EPSILON*(Kokkos::cos(3*M_PI*x/100)*Kokkos::cos(M_PI*y/25)
+            c(i, j, 0) = .5 + .01*(Kokkos::cos(3*M_PI*x/100)*Kokkos::cos(M_PI*y/25)
                 + Kokkos::cos(M_PI*x/25)*Kokkos::cos(3*M_PI*y/100)*Kokkos::cos(M_PI*x/25)*Kokkos::cos(3*M_PI*y/100)
                 + Kokkos::cos(M_PI*x/100-M_PI*y/20)*Kokkos::cos(M_PI*x/50-M_PI*y/100));
             c(i, j, 1) = 0;
