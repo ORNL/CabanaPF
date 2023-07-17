@@ -4,7 +4,6 @@
 
 #include <PFHub.hpp>
 #include <PFVariables.hpp>
-#include <simulation.hpp>
 
 using namespace CabanaPF;
 
@@ -15,7 +14,8 @@ These results that are being tested against come from the python implementation 
     Most points were randomly selected
 */
 TEST(PFHub1a, Initialization) {
-    Simulation<PFHub1aBenchmark> simulation(96, 500);
+    PFHub1aBenchmark simulation(96, 500);
+    simulation.timestep(0); //trigger initialization
     //"true results" come from python implentation (see previous comment)
     //check 4 points for basic indexing/results:
     EXPECT_DOUBLE_EQ(0.53, simulation.get_c(0, 0));
@@ -37,7 +37,7 @@ TEST(PFHub1a, Initialization) {
 }
 
 TEST(PFHub1a, OneTimestep) {
-    Simulation<PFHub1aBenchmark> simulation(96, 500);
+    PFHub1aBenchmark simulation(96, 500);
     simulation.timestep(1);
     //test at extreme points and 10 random points.  Correct values come from python implemtation (see above)
     EXPECT_DOUBLE_EQ(0.5214689225639189, simulation.get_c(0, 0));
@@ -55,7 +55,7 @@ TEST(PFHub1a, OneTimestep) {
 }
 
 TEST(PFHub1a, AllTimestep) {
-    Simulation<PFHub1aBenchmark> simulation(96, 500);
+    PFHub1aBenchmark simulation(96, 500);
     simulation.timestep(500);
     //as before, (0,0), (95,95), and 10 random points, testing against python
     EXPECT_NEAR(0.4412261765305555, simulation.get_c(0, 0), 1e-9);
@@ -102,33 +102,28 @@ TEST(PFVariables, saveload) {
 }
 
 //Similar to above, the python implmentation was modified to use the same periodic initial conditions
-TEST(PFHub1aSimplePeriodic, periodic) {
-    Simulation<PFHub1aSimplePeriodic> simul(96, 500);
-    EXPECT_NEAR(0.52, simul.get_c(0, 0), 1e-8);
-    EXPECT_NEAR(0.515, simul.get_c(40,0), 1e-8);
-    EXPECT_NEAR(0.49633974596215563, simul.get_c(40,40), 1e-8);
-    EXPECT_NEAR(0.5013397459621556, simul.get_c(0,40), 1e-8);
+TEST(PFHub1aPeriodic, periodic) {
+    PFHub1aPeriodic simul(96, 500);
+    simul.timestep(0);
+    EXPECT_NEAR(0.53, simul.get_c(0, 0), 1e-9);
+    EXPECT_NEAR(0.5280872555770657, simul.get_c(95, 95), 1e-9);
+    EXPECT_NEAR(0.49625, simul.get_c(56, 52), 1e-9);
+    EXPECT_NEAR(0.5096103712433676, simul.get_c(39, 36), 1e-9);
+    EXPECT_NEAR(0.5122826024701564, simul.get_c(46, 40), 1e-9);
 
-    simul.timestep(500);
-    EXPECT_NEAR(0.6899556834423245, simul.get_c(0, 0), 1e-8);
-    EXPECT_NEAR(0.710215729789399, simul.get_c(95, 95), 1e-8);
-    EXPECT_NEAR(0.6203452063008421, simul.get_c(31, 68), 1e-8);
-    EXPECT_NEAR(0.29988065061700286, simul.get_c(16, 91), 1e-8);
-    EXPECT_NEAR(0.3425650624685481, simul.get_c(62, 21), 1e-8);
-    EXPECT_NEAR(0.6352884582630192, simul.get_c(2, 79), 1e-8);
-    EXPECT_NEAR(0.29039495705145013, simul.get_c(73, 75), 1e-8);
-    EXPECT_NEAR(0.6102543428687541, simul.get_c(40, 11), 1e-8);
-    EXPECT_NEAR(0.6245817469274588, simul.get_c(85, 67), 1e-8);
-    EXPECT_NEAR(0.631637186261738, simul.get_c(40, 78), 1e-8);
-    EXPECT_NEAR(0.35473143197267865, simul.get_c(70, 72), 1e-8);
-    EXPECT_NEAR(0.6338012425033652, simul.get_c(67, 7), 1e-8);
+    simul.timestep(1);
+    EXPECT_NEAR(0.5316722086053631, simul.get_c(0, 0), 1e-9);
+    EXPECT_NEAR(0.5296339912527902, simul.get_c(95, 95), 1e-9);
+    EXPECT_NEAR(0.5155424558547776, simul.get_c(24, 46), 1e-9);
+    EXPECT_NEAR(0.510243048825588,  simul.get_c(87, 78), 1e-9);
+    EXPECT_NEAR(0.5092351158827323, simul.get_c(6, 19), 1e-9);
 
-    //test setup on bigger grid:
-    Simulation<PFHub1aSimplePeriodic> big_grid(4*96, 500);
-    EXPECT_NEAR(0.52, big_grid.get_c(0, 0), 1e-9);
-    EXPECT_NEAR(0.515, big_grid.get_c(160,0), 1e-9);
-    EXPECT_NEAR(0.49633974596215563, big_grid.get_c(160,160), 1e-9);
-    EXPECT_NEAR(0.5013397459621556, big_grid.get_c(0,160), 1e-9);
+    simul.timestep(499);
+    EXPECT_NEAR(0.6993369106233298, simul.get_c(0, 0), 1e-9);
+    EXPECT_NEAR(0.7014658707445363, simul.get_c(95, 95), 1e-9);
+    EXPECT_NEAR(0.6427344294446387, simul.get_c(0, 28), 1e-9);
+    EXPECT_NEAR(0.6076503841641254, simul.get_c(35, 65), 1e-9);
+    EXPECT_NEAR(0.3520246964993546, simul.get_c(74, 32), 1e-9);
 }
 
 int main(int argc, char** argv) {

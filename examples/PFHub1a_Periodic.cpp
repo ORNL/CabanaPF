@@ -1,5 +1,4 @@
 #include <Cajita.hpp>
-#include <simulation.hpp>
 #include <PFVariables.hpp>
 #include <PFHub.hpp>
 
@@ -13,11 +12,11 @@ int main(int argc, char* argv[]) {
         Kokkos::ScopeGuard scope_guard( argc, argv );
         //runs for the paper
         for (int t=500; t<=1024000; t*=2) {
-            Simulation<PFHub1aFixedPeriodic>(96, t).timestep(t);
+            PFHub1aPeriodic(96, t).timestep(t);
             std::cout << t << std::endl;
         }
         for (int g=96; g<=6144; g*=2) {
-            Simulation<PFHub1aFixedPeriodic>(g, 500).timestep(500);
+            PFHub1aPeriodic(g, 500).timestep(500);
             std::cout << g << std::endl;
         }
     }

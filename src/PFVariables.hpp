@@ -41,11 +41,6 @@ public:
         fft_calculator->reverse(*arrays[index], Cajita::Experimental::FFTScaleFull());
     }
 
-    //TODO: Remove
-    PFVariables(CajitaArray arr) {
-        arrays[0] = arr;
-    }
-
     View_type operator[](int index) {
         return arrays[index]->view();
     }
