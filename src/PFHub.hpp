@@ -134,6 +134,36 @@ public:
     PFHub1aSimplePeriodic(int grid_points, int timesteps, Layout layout) : PFHub1aBase{grid_points, timesteps, layout} {}
 };
 
+class PFHub1aFixedPeriodic : public PFHub1aBase {
+public:
+    KokkosFunc initialize() override {
+        auto c = vars[0];   //get View for scope capture
+        return KOKKOS_LAMBDA(const int i, const int j) {
+            //setup laplacian:
+            const auto kx = cdouble(0.0, 2*M_PI/grid_points)
+                    * static_cast<double>(i > grid_points/2 ? i - grid_points : 2*i == grid_points ? 0 : i);
+            const auto ky = cdouble(0.0, 2*M_PI/grid_points)
+                * static_cast<double>(j > grid_points/2 ? j - grid_points : 2*j == grid_points ? 0 : j);
+            laplacian(i, j) = (kx*kx + ky*ky) * static_cast<double>(grid_points * grid_points) / (SIZE*SIZE);
+            //initialize c:
+            const double x = cell_size*i;
+            const double y = cell_size*j;
+            c(i, j, 0) = C0 + EPSILON*(Kokkos::cos(3*M_PI*x/100)*Kokkos::cos(M_PI*y/25)
+                + Kokkos::cos(M_PI*x/25)*Kokkos::cos(3*M_PI*y/100)*Kokkos::cos(M_PI*x/25)*Kokkos::cos(3*M_PI*y/100)
+                + Kokkos::cos(M_PI*x/100-M_PI*y/20)*Kokkos::cos(M_PI*x/50-M_PI*y/100));
+            c(i, j, 1) = 0;
+        };
+    }
+
+    void finalize() {
+        std::stringstream s;
+        s << "1aPeriodic_N" << grid_points << "T" << timesteps;
+        vars.save(0, s.str());
+    }
+
+    PFHub1aFixedPeriodic(int grid_points, int timesteps, Layout layout) : PFHub1aBase{grid_points, timesteps, layout} {}
+};
+
 }
 
 #endif
