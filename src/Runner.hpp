@@ -5,8 +5,6 @@
 
 namespace CabanaPF {
 
-#define CABANAPF_PARALLEL(name, lambda) Cajita::grid_parallel_for(name, exec_space(), *local_grid, Cajita::Own(), Cajita::Node(), lambda);
-
 //Inherit from this to implement the problem's specific actions
 template <std::size_t NumSpaceDim>
 class CabanaPFRunner {
@@ -37,6 +35,18 @@ public:
         //create local stuff:
         local_grid = Cajita::createLocalGrid(global_grid, 0);
         layout = createArrayLayout(local_grid, 2, Cajita::Node()); //2: real & imag
+    }
+
+    template<class FunctorType>
+    void parallel_for(const std::string& label, FunctorType lambda) {
+        Cajita::grid_parallel_for(label, exec_space(), *local_grid, Cajita::Own(), Cajita::Node(), lambda);
+    }
+
+    template<class FunctorType>
+    double parallel_reduce(const std::string& label, FunctorType lambda) {
+        double result = 0;
+        Cajita::grid_parallel_reduce(label, exec_space(), *local_grid, Cajita::Own(), Cajita::Node(), lambda, result);
+        return result;
     }
 
     void timestep(int count) {

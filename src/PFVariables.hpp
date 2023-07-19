@@ -3,7 +3,10 @@
 
 #include <Cajita.hpp>
 #include <fstream>
+
+#ifdef RESULTS_PATH
 #include <filesystem>
+#endif
 
 namespace CabanaPF {
 
@@ -12,7 +15,7 @@ class PFVariables {
     using device_type = Kokkos::DefaultExecutionSpace::device_type;
     using Mesh = Cajita::UniformMesh<double, NumSpaceDim>;
     using CajitaArray = std::shared_ptr<Cajita::Array<double, Cajita::Node, Mesh, device_type>>;
-    using View_type = std::conditional_t<3 == NumSpaceDim, Kokkos::View<double****>, Kokkos::View<double***>>;
+    using View_type = std::conditional_t<3 == NumSpaceDim, Kokkos::View<double****, device_type>, Kokkos::View<double***, device_type>>;
 private:
     std::array<int, NumSpaceDim> array_size;    //number of x, y, (and possibly z) points
     std::shared_ptr<Cajita::Experimental::HeffteFastFourierTransform<
@@ -45,15 +48,16 @@ public:
         return arrays[index]->view();
     }
 
-    //TODO: Load from config file?
-    static inline const std::string SAVE_PATH = "/home/kokkos/src/CabanaPF/results/";
+    /*If on GPU, will copy over the data to CPU and return it
+    If on CPU, same as using []*/
+    auto host_view(int index) {
+        return Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), arrays[index]->view());
+    }
+
+#ifdef RESULTS_PATH  //Comes from the CMake build; if not defined, won't have file I/O
     std::string save_name(std::string run_name, const int index, const int timesteps_done = -1) {
         std::stringstream name;
-        name << SAVE_PATH << run_name << "_" << arrays[index]->label();
-        if (timesteps_done > -1) {  //incomplete simulation, mark as such
-            name << ".tmp" << timesteps_done;
-        }
-        name << ".dat";
+        name << RESULTS_PATH << run_name << "_" << arrays[index]->label() << ".dat";
         return name.str();
     }
 
@@ -77,40 +81,20 @@ public:
             //read it:
             const auto view = arrays[index]->view();
             double buffer[2];
-            //for (int k=0; k < (NumSpaceDim<3 ? 1 : array_size[2]); k++) {
-                for (int j=0; j<array_size[1]; j++) {
-                    for (int i=0; i<array_size[0]; i++) {
-                        infile.read((char*)buffer, 2*sizeof(double));
-                        //loadHelper(view, i, j, k, buffer);
-                        view(i, j, 0) = buffer[0];
-                        view(i, j, 1) = buffer[1];
-                    }
-                    //since the grid is periodic, it writes the first value in the row again, so "burn it off":
+            for (int j=0; j<array_size[1]; j++) {
+                for (int i=0; i<array_size[0]; i++) {
                     infile.read((char*)buffer, 2*sizeof(double));
+                    view(i, j, 0) = buffer[0];
+                    view(i, j, 1) = buffer[1];
                 }
-            //}
+                //since the grid is periodic, it writes the first value in the row again, so "burn it off":
+                infile.read((char*)buffer, 2*sizeof(double));
+            }
         }
     }
+#endif
 };
 
-/*Not sure why this doesn't work
-template<std::size_t NumVariables>
-class PFVariables<2, NumVariables> {
-private:
-    void loadHelper(Kokkos::View<double***> &view, int i, int j, int k, double *buffer) {
-        view(i, j, 0) = buffer[0];
-        view(i, j, 1) = buffer[1];
-    }
-};
-template<std::size_t NumVariables>
-class PFVariables<3, NumVariables> {
-private:
-    void loadHelper(Kokkos::View<double****> &view, int i, int j, int k, double *buffer) {
-        view(i, j, k, 0) = buffer[0];
-        view(i, j, k, 1) = buffer[1];
-    }
-};
-*/
 }
 
 #endif

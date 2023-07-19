@@ -1,2 +1,6 @@
 add_executable(Periodic PFHub1a_Periodic.cpp)
 target_link_libraries(Periodic LINK_PUBLIC CabanaPF)
+add_executable(Benchmark PFHub1a_Benchmark.cpp)
+target_link_libraries(Benchmark LINK_PUBLIC CabanaPF)
+add_executable(GridTimer GridTimer.cpp)
+target_link_libraries(GridTimer LINK_PUBLIC CabanaPF)
