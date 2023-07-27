@@ -54,7 +54,6 @@ public:
         return Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), arrays[index]->view());
     }
 
-#ifdef RESULTS_PATH  //Comes from the CMake build; if not defined, won't have file I/O
     std::string save_name(std::string run_name, const int index, const int timesteps_done = -1) {
         std::stringstream name;
         name << RESULTS_PATH << run_name << "_" << arrays[index]->label() << ".dat";
@@ -64,6 +63,7 @@ public:
     //If unfinished and just saving progress, pass in timesteps_done
     void save(const int index, std::string run_name, const int timesteps_done = -1) {
         Cajita::Experimental::BovWriter::writeTimeStep(999999, 0, *arrays[index]);  //use 999999 to mark it for move
+        #ifdef RESULTS_PATH  //Comes from the CMake build; if not defined, won't have file I/O
         try {
             std::string old_name = "grid_" + arrays[index]->label() + "_999999.dat";
             std::filesystem::rename(old_name, save_name(run_name, index, timesteps_done));
@@ -71,6 +71,7 @@ public:
         } catch (std::filesystem::filesystem_error &e) {
             std::cerr << "Error when saving: " << e.what() << std::endl;
         }
+        #endif
     }
 
     void load(std::string run_name, const int timesteps_done = -1) {
@@ -92,7 +93,6 @@ public:
             }
         }
     }
-#endif
 };
 
 }

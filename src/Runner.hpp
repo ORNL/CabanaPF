@@ -11,7 +11,7 @@ class CabanaPFRunner {
 protected:
     using exec_space = Kokkos::DefaultExecutionSpace;
     using device_type = exec_space::device_type;
-    using Mesh = Cajita::UniformMesh<double, 2>;
+    using Mesh = Cajita::UniformMesh<double, NumSpaceDim>;
 
     std::shared_ptr<Cajita::LocalGrid<Mesh>> local_grid;
     std::shared_ptr<Cajita::ArrayLayout<Cajita::Node, Mesh>> layout;
@@ -38,12 +38,12 @@ public:
     }
 
     template<class FunctorType>
-    void parallel_for(const std::string& label, FunctorType lambda) {
+    void node_parallel_for(const std::string& label, FunctorType lambda) {
         Cajita::grid_parallel_for(label, exec_space(), *local_grid, Cajita::Own(), Cajita::Node(), lambda);
     }
 
     template<class FunctorType>
-    double parallel_reduce(const std::string& label, FunctorType lambda) {
+    double node_parallel_reduce(const std::string& label, FunctorType lambda) {
         double result = 0;
         Cajita::grid_parallel_reduce(label, exec_space(), *local_grid, Cajita::Own(), Cajita::Node(), lambda, result);
         return result;

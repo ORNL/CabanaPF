@@ -53,7 +53,7 @@ public:
         const auto points = grid_points;
         const double SIZE = _SIZE;
 
-        parallel_for("laplacian", KOKKOS_LAMBDA(const int i, const int j) {
+        node_parallel_for("laplacian", KOKKOS_LAMBDA(const int i, const int j) {
             const auto kx = cdouble(0.0, 2*M_PI/points)
                     * static_cast<double>(i > points/2 ? i - points : 2*i == points ? 0 : i);
             const auto ky = cdouble(0.0, 2*M_PI/points)
@@ -70,7 +70,7 @@ public:
         const auto dfdc_view = vars[1];
         const double RHO = _RHO, C_ALPHA = _C_ALPHA, C_BETA = _C_BETA;
 
-        parallel_for("df_dc", KOKKOS_LAMBDA( const int i, const int j) {
+        node_parallel_for("df_dc", KOKKOS_LAMBDA( const int i, const int j) {
             const cdouble c(c_view(i, j, 0), c_view(i, j, 1));
             const cdouble df_dc = RHO * (2.0*(c-C_ALPHA)*(C_BETA-c)*(C_BETA-c) - 2.0*(C_BETA-c)*(c-C_ALPHA)*(c-C_ALPHA));
             dfdc_view(i, j, 0) = df_dc.real();
@@ -83,13 +83,13 @@ public:
         vars.fft(0);
         vars.fft(1);
         
-        const double dt = 250./timesteps;
+        const double dt = END_TIME/timesteps;
         const double M = _M, KAPPA = _KAPPA;
         const auto c = vars[0];
         const auto df_dc = vars[1];
         const auto laplacian = laplacian_view;
 
-        parallel_for("timestep", KOKKOS_LAMBDA(const int i, const int j) {
+        node_parallel_for("timestep", KOKKOS_LAMBDA(const int i, const int j) {
             const cdouble df_dc_hat(df_dc(i, j, 0), df_dc(i, j, 1));
             cdouble c_hat(c(i, j, 0), c(i, j, 1));
 
@@ -110,7 +110,7 @@ public:
     void initial_conditions() override {
         const auto c = vars[0];   //get View for scope capture
         const auto delta = cell_size;
-        parallel_for("benchmark initial conditions", KOKKOS_LAMBDA(const int i, const int j) {
+        node_parallel_for("benchmark initial conditions", KOKKOS_LAMBDA(const int i, const int j) {
             //initialize c:
             const double x = delta*i;
             const double y = delta*j;
@@ -121,13 +121,11 @@ public:
         });
     }
 
-#ifdef RESULTS_PATH
     void output() {
         std::stringstream s;
         s << "1aBenchmark_N" << grid_points << "T" << timesteps;
         vars.save(0, s.str());
     }
-#endif
 
     PFHub1aBenchmark(int grid_points, int timesteps) : PFHub1aBase{grid_points, timesteps} {}
 };
@@ -137,7 +135,7 @@ public:
     void initial_conditions() override {
         const auto c = vars[0];   //get View for scope capture
         const auto delta = cell_size;
-        parallel_for("periodic initial conditions", KOKKOS_LAMBDA(const int i, const int j) {
+        node_parallel_for("periodic initial conditions", KOKKOS_LAMBDA(const int i, const int j) {
             //initialize c:
             const double x = delta*i;
             const double y = delta*j;
@@ -148,13 +146,11 @@ public:
         });
     }
 
-#ifdef RESULTS_PATH
     void output() {
         std::stringstream s;
         s << "1aPeriodic_N" << grid_points << "T" << timesteps;
         vars.save(0, s.str());
     }
-#endif
 
     PFHub1aPeriodic(int grid_points, int timesteps) : PFHub1aBase{grid_points, timesteps} {}
 };

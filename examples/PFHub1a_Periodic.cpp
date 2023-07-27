@@ -7,7 +7,6 @@ int main(int argc, char* argv[]) {
     {
         Kokkos::ScopeGuard scope_guard( argc, argv );
         if (argc==1) {
-            std::cout << "Running everything for the paper" << std::endl;
             //runs for the paper
             for (int t=500; t<=1024000; t*=2) {
                 std::cout << "Running " << t << " timesteps" << std::endl;
