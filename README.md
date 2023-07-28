@@ -1,6 +1,6 @@
 # CabanaPF
 
-Phase-field with the Cabana particle library
+Phase-field framework built on the Cabana particle library
 
 ## Dependencies
 
