@@ -25,12 +25,12 @@ public:
 
     PFVariables(std::shared_ptr<Cajita::ArrayLayout<Cajita::Node, Mesh>> layout, std::array<std::string, NumVariables> names) {
         //create an array and store the name of each variable:
-        for(int i=0; i<NumVariables; i++) {
+        for(std::size_t i=0; i<NumVariables; i++) {
             arrays[i] = Cajita::createArray<double, device_type>(names[i], layout);
         }
         //Record the array size for each spatial dimension:
         const auto GlobalMesh = layout->localGrid()->globalGrid().globalMesh();
-        for(int i=0; i<NumSpaceDim; i++) {
+        for(std::size_t i=0; i<NumSpaceDim; i++) {
             array_size[i] = GlobalMesh.globalNumCell(i);
         }
         fft_calculator = Cajita::Experimental::createHeffteFastFourierTransform<double, device_type>(*layout);
@@ -54,14 +54,17 @@ public:
         return Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), arrays[index]->view());
     }
 
-    std::string save_name(std::string run_name, const int index, const int timesteps_done = -1) {
+    std::string save_name(std::string run_name, [[maybe_unused]]  const int index, [[maybe_unused]] const int timesteps_done = -1) {
         std::stringstream name;
-        name << RESULTS_PATH << run_name << "_" << arrays[index]->label() << ".dat";
+        #ifdef RESULTS_PATH
+        name << RESULTS_PATH;
+        #endif
+        name << run_name << "_" << arrays[index]->label() << ".dat";
         return name.str();
     }
 
     //If unfinished and just saving progress, pass in timesteps_done
-    void save(const int index, std::string run_name, const int timesteps_done = -1) {
+    void save(const int index, [[maybe_unused]] std::string run_name, [[maybe_unused]] const int timesteps_done = -1) {
         Cajita::Experimental::BovWriter::writeTimeStep(999999, 0, *arrays[index]);  //use 999999 to mark it for move
         #ifdef RESULTS_PATH  //Comes from the CMake build; if not defined, won't have file I/O
         try {
@@ -75,7 +78,7 @@ public:
     }
 
     void load(std::string run_name, const int timesteps_done = -1) {
-        for (int index=0; index<NumVariables; index++) {
+        for (std::size_t index=0; index<NumVariables; index++) {
             assert(NumSpaceDim==2);    //currently not supported for 3D
             //open the file:
             std::fstream infile(save_name(run_name, index, timesteps_done), std::fstream::in|std::fstream::binary);

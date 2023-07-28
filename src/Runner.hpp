@@ -22,7 +22,7 @@ public:
     const int timesteps;
 
     CabanaPFRunner(int grid_points, int timesteps, double size)
-        : grid_points{grid_points}, timesteps{timesteps}, timesteps_done{0}, have_initialized{false}
+        : timesteps_done{0}, have_initialized{false}, grid_points{grid_points}, timesteps{timesteps}
     {
         auto global_mesh = Cajita::createUniformGlobalMesh(
             std::array<double, NumSpaceDim> {0},

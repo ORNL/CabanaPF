@@ -21,7 +21,7 @@ int main(int argc, char* argv[]) {
 
         //run these and measure how long they take:
         Cabana::Benchmark::Timer timer("grid scaling", runs.size());
-        for (int i=0; i<runs.size(); i++) {
+        for (std::size_t i=0; i<runs.size(); i++) {
             std::cout << "Running " << runs[i] << " grid points" << std::endl;
             for (int reps=0; reps<5; reps++) {
                 timer.start(i);

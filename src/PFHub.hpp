@@ -31,7 +31,7 @@ public:
     static constexpr double _C_BETA = .7;
 
     PFHub1aBase(int grid_points, int timesteps) : CabanaPFRunner(grid_points, timesteps, _SIZE),
-        vars{layout, {"c", "df_dc"}}, cell_size{_SIZE/grid_points}, timesteps{timesteps}, grid_points{grid_points}
+        cell_size{_SIZE/grid_points}, timesteps{timesteps}, grid_points{grid_points}, vars{layout, {"c", "df_dc"}}
     {
         laplacian_view = Kokkos::View<cdouble **, device_type> ("laplacian", grid_points, grid_points);
     }
