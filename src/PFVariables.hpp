@@ -36,11 +36,11 @@ public:
         fft_calculator = Cajita::Experimental::createHeffteFastFourierTransform<double, device_type>(*layout);
     }
 
-    void fft(int index) {
+    void fft_forward(int index) {
         fft_calculator->forward(*arrays[index], Cajita::Experimental::FFTScaleNone());
     }
 
-    void ifft(int index) {
+    void fft_inverse(int index) {
         fft_calculator->reverse(*arrays[index], Cajita::Experimental::FFTScaleFull());
     }
 

@@ -80,8 +80,8 @@ public:
 
     void step() override {
         //enter Fourier space:
-        vars.fft(0);
-        vars.fft(1);
+        vars.fft_forward(0);
+        vars.fft_forward(1);
         
         const double dt = END_TIME/timesteps;
         const double M = _M, KAPPA = _KAPPA;
@@ -101,7 +101,7 @@ public:
 
     void post_step() override {
         //rescue concentration values from Fourier space:
-        vars.ifft(0);
+        vars.fft_inverse(0);
     }
 };
 
