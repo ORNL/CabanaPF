@@ -19,6 +19,10 @@ Cabana must be built with the following in order to work with CabanaPF:
 |Kokkos     | 3.6.0+  | Yes      | Performance portable on-node parallelism
 |heFFTe 	| 2.1.0   | Yes      | (Experimental) Performance portable fast Fourier transforms
 
+## PFHub
+
+CabanaPF currently implements the PFHub 1a benchmark, available [here](https://pages.nist.gov/pfhub/benchmarks/benchmark1.ipynb/).  We also implement an alternative benchmark with periodic initial conditions.
+
 ## License
 
 CabanaPF is distributed under an [open source 3-clause BSD license](LICENSE).
@@ -27,7 +31,9 @@ CabanaPF is distributed under an [open source 3-clause BSD license](LICENSE).
 
 If you have questions regarding CabanaPF, please contact one of the developers:
 David Joy (dhj0005@auburn.edu)
+
 Sam Reeve (reevest@ornl.gov)
+
 Steve DeWitt (dewittsj@ornl.gov)
 
 ## Acknowledgments
