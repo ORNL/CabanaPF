@@ -25,12 +25,12 @@ public:
         : grid_points{grid_points}, timesteps{timesteps}, timesteps_done{0}, have_initialized{false}
     {
         auto global_mesh = Cajita::createUniformGlobalMesh(
-            std::array<double, 2> {0, 0},
-            std::array<double, 2> {size, size},
-            std::array<int, 2> {grid_points, grid_points}
+            std::array<double, NumSpaceDim> {0},
+            std::array<double, NumSpaceDim> {size},
+            std::array<int, NumSpaceDim> {grid_points}
         );
-        Cajita::DimBlockPartitioner<2> partitioner;
-        auto global_grid = Cajita::createGlobalGrid(MPI_COMM_WORLD, global_mesh, std::array<bool, 2>{true, true}, partitioner);
+        Cajita::DimBlockPartitioner<NumSpaceDim> partitioner;
+        auto global_grid = Cajita::createGlobalGrid(MPI_COMM_WORLD, global_mesh, std::array<bool, NumSpaceDim>{true}, partitioner);
 
         //create local stuff:
         local_grid = Cajita::createLocalGrid(global_grid, 0);
