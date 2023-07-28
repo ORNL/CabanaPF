@@ -1,129 +1,160 @@
 #ifndef PFHUB_H
 #define PFHUB_H
 
-#include <Cabana_Core.hpp>
 #include <Cajita.hpp>
-#include <cmath>
-#include <complex>
+#include <Runner.hpp>
+#include <PFVariables.hpp>
 
-namespace CabanaPF
-{
-const double PFHUB_1A_SIZE = 200.0;
-const double C0 = .5;
-const double EPSILON = .01;
-const double RHO = 5.0;
-const double M = 5.0;
-const double KAPPA = 2.0;
-const double C_ALPHA = .3;
-const double C_BETA = .7;
+namespace CabanaPF {
 
-//This will probably get moved into an "Initializer" class once we have more problems
-double PFHUB_INITIAL(double x, double y) {
-    return C0 + EPSILON*(std::cos(.105*x)*std::cos(.11*y)
-    + std::pow(std::cos(.13*x)*std::cos(.087*y), 2)
-    + std::cos(.025*x-.15*y)*std::cos(.07*x-.02*y));
-}
+/*The PFHub Benchmark 1a: Spinodal Decomposition (https://pages.nist.gov/pfhub/benchmarks/benchmark1.ipynb/).  We have two versions:
+    -PFHub1aBenchmark (which uses the actual benchmark initial conditions)
+    -PFHub1aPeriodic (which uses similar but periodic initial conditions)
+*/
+class PFHub1aBase : public CabanaPFRunner<2> {
+protected:
+    using cdouble = Kokkos::complex<double>;
 
-class PfHubProblem {
-    using exec_space = Kokkos::DefaultExecutionSpace;
-    using device_type = exec_space::device_type;
-    using Mesh = Cajita::UniformMesh<double, 2>;
-    using cdouble = std::complex<double>;
-private:
-    int grid_points;
-    std::shared_ptr<Cajita::LocalGrid<Mesh>> local_grid;
-    std::shared_ptr<Cajita::Experimental::HeffteFastFourierTransform<
-        Cajita::Cell, Mesh, double, device_type, Cajita::Experimental::Impl::FFTBackendDefault>> fft;
+    const double cell_size;
+    const int timesteps;
+    const int grid_points;
+    Kokkos::View<cdouble **, device_type> laplacian_view;
 
-    std::shared_ptr<Cajita::Array<double, Cajita::Cell, Mesh, device_type>> concentration;
-    std::shared_ptr<Cajita::Array<double, Cajita::Cell, Mesh, device_type>> dfdc;
-
-    Kokkos::View<cdouble **, device_type> laplacian;
-
-    void setup_laplacian() {
-        laplacian = Kokkos::View<cdouble **> ("laplacian", grid_points, grid_points);
-        Cajita::grid_parallel_for(
-            "laplacian", exec_space(), *local_grid, Cajita::Ghost(), Cajita::Cell(),
-            KOKKOS_LAMBDA( const int i, const int j) {
-                const auto kx = std::complex<double>(0.0, 2*M_PI/grid_points)
-                    * static_cast<double>(i > grid_points/2 ? i - grid_points : 2*i == grid_points ? 0 : i);
-                const auto ky = std::complex<double>(0.0, 2*M_PI/grid_points)
-                    * static_cast<double>(j > grid_points/2 ? j - grid_points : 2*j == grid_points ? 0 : j);
-                laplacian(i, j) = (kx*kx + ky*ky) * static_cast<double>(grid_points * grid_points) / (PFHUB_1A_SIZE*PFHUB_1A_SIZE);
-            }
-        );
-    }
 public:
-    PfHubProblem(int grid_points) { //number of points used in each dimension
-        this->grid_points = grid_points;
-        //create global grid and mesh:
-        auto global_mesh = Cajita::createUniformGlobalMesh(
-            std::array<double, 2> {0, 0},
-            std::array<double, 2> {PFHUB_1A_SIZE, PFHUB_1A_SIZE},  //a SIZE*SIZE square
-            std::array<int, 2> {grid_points, grid_points}          //that has a GRID_POINTS*GRID_POINTS square mesh
-        );
-        Cajita::DimBlockPartitioner<2> partitioner;
-        auto global_grid = Cajita::createGlobalGrid(MPI_COMM_WORLD, global_mesh, std::array<bool, 2>{true, true}, partitioner);
-        //create local grid and arrays for c and dfdc:
-        local_grid = Cajita::createLocalGrid( global_grid, 0 );
-        auto layout = createArrayLayout(local_grid, 2, Cajita::Cell());
-        concentration = Cajita::createArray<double, device_type>("concentration", layout);
-        dfdc = Cajita::createArray<double, device_type>("dfdc", layout);
-        //setup for FFT:
-        fft = Cajita::Experimental::createHeffteFastFourierTransform<double, device_type>(*layout);
-        setup_laplacian();
+    PFVariables<2, 2> vars;
+    static constexpr double _SIZE = 200.;
+    static constexpr double END_TIME = 250.;
+    static constexpr double _KAPPA = 2.;
+    static constexpr double _M = 5.;
+    static constexpr double _RHO = 5.;
+    static constexpr double _C_ALPHA = .3;
+    static constexpr double _C_BETA = .7;
+
+    PFHub1aBase(int grid_points, int timesteps) : CabanaPFRunner(grid_points, timesteps, _SIZE),
+        cell_size{_SIZE/grid_points}, timesteps{timesteps}, grid_points{grid_points}, vars{layout, {"c", "df_dc"}}
+    {
+        laplacian_view = Kokkos::View<cdouble **, device_type> ("laplacian", grid_points, grid_points);
     }
 
-    //fills the grid with initial conditions as per PFHub benchmark 1
-    void fill_initial() {
-        Cajita::grid_parallel_for(
-            "initialize", exec_space(), *local_grid, Cajita::Ghost(), Cajita::Cell(),
-            KOKKOS_LAMBDA( const int i, const int j) {
-                const double x = i*PFHUB_1A_SIZE/grid_points;
-                const double y = j*PFHUB_1A_SIZE/grid_points;
-                concentration->view()(i, j, 0) = PFHUB_INITIAL(x, y);
-                concentration->view()(i, j, 1) = 0;
-            }
-        );
-    }
-
-    //Returns the current concentration at a given grid point
     double get_c(int i, int j) {
-        return concentration->view()(i, j, 0);
+        return vars[0](i, j, 0);
     }
 
-    //advances the problem using pseudospectral methods
-    void timestep(double dt, int timesteps) {
-        for(int t=0; t<timesteps; t++) {
-            //calculate df_dc:
-            Cajita::grid_parallel_for(
-                "calculate df_dc", exec_space(), *local_grid, Cajita::Ghost(), Cajita::Cell(),
-                KOKKOS_LAMBDA( const int i, const int j) {
-                    const cdouble c(concentration->view()(i, j, 0), concentration->view()(i, j, 1));
-                    const cdouble df_dc = RHO * (2.0*(c-C_ALPHA)*(C_BETA-c)*(C_BETA-c) - 2.0*(C_BETA-c)*(c-C_ALPHA)*(c-C_ALPHA));
-                    dfdc->view()(i, j, 0) = df_dc.real();
-                    dfdc->view()(i, j, 1) = df_dc.imag();
-                }
-            );
-            //enter Fourier space:
-            fft->forward(*concentration, Cajita::Experimental::FFTScaleNone());
-            fft->forward(*dfdc, Cajita::Experimental::FFTScaleNone());
-            //step in Fourier space:
-            Cajita::grid_parallel_for(
-                "forward step", exec_space(), *local_grid, Cajita::Ghost(), Cajita::Cell(),
-                KOKKOS_LAMBDA(const int i, const int j) {
-                    const cdouble df_dc_hat(dfdc->view()(i, j, 0), dfdc->view()(i, j, 1));
-                    cdouble c_hat(concentration->view()(i, j, 0), concentration->view()(i, j, 1));
+    auto get_cpu_view() {
+        return vars.host_view(0);
+    }
 
-                    c_hat = (c_hat + dt*M*laplacian(i, j)*df_dc_hat) / (1.0 + dt*M*KAPPA*laplacian(i, j)*laplacian(i, j));
-                    concentration->view()(i, j, 0) = c_hat.real();
-                    concentration->view()(i, j, 1) = c_hat.imag();
-                }
-            );
-            //leave Fourier space:
-            fft->reverse(*concentration, Cajita::Experimental::FFTScaleFull());
-        }
+    //Problem-specific initial conditions
+    virtual void initial_conditions()=0;
+    
+    void initialize() override {
+        //setup the laplacian:
+        const auto laplacian = laplacian_view;
+        const auto points = grid_points;
+        const double SIZE = _SIZE;
+
+        node_parallel_for("laplacian", KOKKOS_LAMBDA(const int i, const int j) {
+            const auto kx = cdouble(0.0, 2*M_PI/points)
+                    * static_cast<double>(i > points/2 ? i - points : 2*i == points ? 0 : i);
+            const auto ky = cdouble(0.0, 2*M_PI/points)
+                * static_cast<double>(j > points/2 ? j - points : 2*j == points ? 0 : j);
+            laplacian(i, j) = (kx*kx + ky*ky) * static_cast<double>(points * points) / (SIZE*SIZE);
+        });
+        //have the problem do its setup:
+        initial_conditions();
+    }
+
+    void pre_step() override {
+        //Calculate df_dc values:
+        const auto c_view = vars[0];
+        const auto dfdc_view = vars[1];
+        const double RHO = _RHO, C_ALPHA = _C_ALPHA, C_BETA = _C_BETA;
+
+        node_parallel_for("df_dc", KOKKOS_LAMBDA( const int i, const int j) {
+            const cdouble c(c_view(i, j, 0), c_view(i, j, 1));
+            const cdouble df_dc = RHO * (2.0*(c-C_ALPHA)*(C_BETA-c)*(C_BETA-c) - 2.0*(C_BETA-c)*(c-C_ALPHA)*(c-C_ALPHA));
+            dfdc_view(i, j, 0) = df_dc.real();
+            dfdc_view(i, j, 1) = df_dc.imag();
+        });
+    }
+
+    void step() override {
+        //enter Fourier space:
+        vars.fft_forward(0);
+        vars.fft_forward(1);
+        
+        const double dt = END_TIME/timesteps;
+        const double M = _M, KAPPA = _KAPPA;
+        const auto c = vars[0];
+        const auto df_dc = vars[1];
+        const auto laplacian = laplacian_view;
+
+        node_parallel_for("timestep", KOKKOS_LAMBDA(const int i, const int j) {
+            const cdouble df_dc_hat(df_dc(i, j, 0), df_dc(i, j, 1));
+            cdouble c_hat(c(i, j, 0), c(i, j, 1));
+
+            c_hat = (c_hat + dt*M*laplacian(i, j)*df_dc_hat) / (1.0 + dt*M*KAPPA*laplacian(i, j)*laplacian(i, j));
+            c(i, j, 0) = c_hat.real();
+            c(i, j, 1) = c_hat.imag();
+        });
+    }
+
+    void post_step() override {
+        //rescue concentration values from Fourier space:
+        vars.fft_inverse(0);
     }
 };
+
+class PFHub1aBenchmark : public PFHub1aBase {
+public:
+    void initial_conditions() override {
+        const auto c = vars[0];   //get View for scope capture
+        const auto delta = cell_size;
+        node_parallel_for("benchmark initial conditions", KOKKOS_LAMBDA(const int i, const int j) {
+            //initialize c:
+            const double x = delta*i;
+            const double y = delta*j;
+            c(i, j, 0) = .5 + .01*(Kokkos::cos(.105*x)*Kokkos::cos(.11*y)
+                + Kokkos::cos(.13*x)*Kokkos::cos(.087*y)*Kokkos::cos(.13*x)*Kokkos::cos(.087*y)
+                + Kokkos::cos(.025*x-.15*y)*Kokkos::cos(.07*x-.02*y));
+            c(i, j, 1) = 0;
+        });
+    }
+
+    void output() {
+        std::stringstream s;
+        s << "1aBenchmark_N" << grid_points << "T" << timesteps;
+        vars.save(0, s.str());
+    }
+
+    PFHub1aBenchmark(int grid_points, int timesteps) : PFHub1aBase{grid_points, timesteps} {}
+};
+
+class PFHub1aPeriodic : public PFHub1aBase {
+public:
+    void initial_conditions() override {
+        const auto c = vars[0];   //get View for scope capture
+        const auto delta = cell_size;
+        node_parallel_for("periodic initial conditions", KOKKOS_LAMBDA(const int i, const int j) {
+            //initialize c:
+            const double x = delta*i;
+            const double y = delta*j;
+            c(i, j, 0) = .5 + .01*(Kokkos::cos(3*M_PI*x/100)*Kokkos::cos(M_PI*y/25)
+                + Kokkos::cos(M_PI*x/25)*Kokkos::cos(3*M_PI*y/100)*Kokkos::cos(M_PI*x/25)*Kokkos::cos(3*M_PI*y/100)
+                + Kokkos::cos(M_PI*x/100-M_PI*y/20)*Kokkos::cos(M_PI*x/50-M_PI*y/100));
+            c(i, j, 1) = 0;
+        });
+    }
+
+    void output() {
+        std::stringstream s;
+        s << "1aPeriodic_N" << grid_points << "T" << timesteps;
+        vars.save(0, s.str());
+    }
+
+    PFHub1aPeriodic(int grid_points, int timesteps) : PFHub1aBase{grid_points, timesteps} {}
+};
+
 }
+
 #endif
