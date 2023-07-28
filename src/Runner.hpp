@@ -24,13 +24,19 @@ public:
     CabanaPFRunner(int grid_points, int timesteps, double size)
         : timesteps_done{0}, have_initialized{false}, grid_points{grid_points}, timesteps{timesteps}
     {
+        std::array<double, NumSpaceDim> low_corner;
+        low_corner.fill(0.0);
+        std::array<double, NumSpaceDim> high_corner;
+        high_corner.fill(size);
+        std::array<int, NumSpaceDim> num_cell;
+        num_cell.fill(grid_points);
         auto global_mesh = Cajita::createUniformGlobalMesh(
-            std::array<double, NumSpaceDim> {0},
-            std::array<double, NumSpaceDim> {size},
-            std::array<int, NumSpaceDim> {grid_points}
+            low_corner, high_corner, num_cell
         );
         Cajita::DimBlockPartitioner<NumSpaceDim> partitioner;
-        auto global_grid = Cajita::createGlobalGrid(MPI_COMM_WORLD, global_mesh, std::array<bool, NumSpaceDim>{true}, partitioner);
+        std::array<bool, NumSpaceDim> periodic;
+        periodic.fill(true);
+        auto global_grid = Cajita::createGlobalGrid(MPI_COMM_WORLD, global_mesh, periodic, partitioner);
 
         //create local stuff:
         local_grid = Cajita::createLocalGrid(global_grid, 0);
