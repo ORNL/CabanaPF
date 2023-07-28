@@ -30,11 +30,9 @@ CabanaPF is distributed under an [open source 3-clause BSD license](LICENSE).
 ## Help
 
 If you have questions regarding CabanaPF, please contact one of the developers:
-David Joy (dhj0005@auburn.edu)
-
-Sam Reeve (reevest@ornl.gov)
-
-Steve DeWitt (dewittsj@ornl.gov)
+- David Joy (dhj0005@auburn.edu)
+- Sam Reeve (reevest@ornl.gov)
+- Steve DeWitt (dewittsj@ornl.gov)
 
 ## Acknowledgments
 
