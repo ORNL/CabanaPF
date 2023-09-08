@@ -12,28 +12,29 @@ namespace CabanaPF {
 
 template <std::size_t NumSpaceDim, std::size_t NumVariables>
 class PFVariables {
-    using device_type = Kokkos::DefaultExecutionSpace::device_type;
+    using execution_space = Kokkos::DefaultExecutionSpace;
+    using memory_space = typename execution_space::memory_space;
     using Mesh = Cajita::UniformMesh<double, NumSpaceDim>;
-    using CajitaArray = std::shared_ptr<Cajita::Array<double, Cajita::Node, Mesh, device_type>>;
-    using View_type = std::conditional_t<3 == NumSpaceDim, Kokkos::View<double****, device_type>, Kokkos::View<double***, device_type>>;
+    using CajitaArray = std::shared_ptr<Cajita::Array<double, Cajita::Node, Mesh, memory_space>>;
+    using View_type = std::conditional_t<3 == NumSpaceDim, Kokkos::View<double****, memory_space>, Kokkos::View<double***, memory_space>>;
 private:
     std::array<int, NumSpaceDim> array_size;    //number of x, y, (and possibly z) points
     std::shared_ptr<Cajita::Experimental::HeffteFastFourierTransform<
-        Cajita::Node, Mesh, double, device_type, Cajita::Experimental::Impl::FFTBackendDefault>> fft_calculator;
+        Cajita::Node, Mesh, double, memory_space, execution_space, Cajita::Experimental::Impl::FFTBackendDefault>> fft_calculator;
 public:
     std::array<CajitaArray, NumVariables> arrays;
 
     PFVariables(std::shared_ptr<Cajita::ArrayLayout<Cajita::Node, Mesh>> layout, std::array<std::string, NumVariables> names) {
         //create an array and store the name of each variable:
         for(std::size_t i=0; i<NumVariables; i++) {
-            arrays[i] = Cajita::createArray<double, device_type>(names[i], layout);
+            arrays[i] = Cajita::createArray<double, memory_space>(names[i], layout);
         }
         //Record the array size for each spatial dimension:
         const auto GlobalMesh = layout->localGrid()->globalGrid().globalMesh();
         for(std::size_t i=0; i<NumSpaceDim; i++) {
             array_size[i] = GlobalMesh.globalNumCell(i);
         }
-        fft_calculator = Cajita::Experimental::createHeffteFastFourierTransform<double, device_type>(*layout);
+        fft_calculator = Cajita::Experimental::createHeffteFastFourierTransform<double, memory_space>(*layout);
     }
 
     void fft_forward(int index) {
