@@ -3,18 +3,18 @@
 
 using namespace CabanaPF;
 int main(int argc, char* argv[]) {
-    MPI_Init( &argc, &argv );
+    MPI_Init(&argc, &argv);
     {
-        Kokkos::ScopeGuard scope_guard( argc, argv );
-        if (argc==1) {
-            //runs for the paper
-            for (int t=500; t<=1024000; t*=2) {
+        Kokkos::ScopeGuard scope_guard(argc, argv);
+        if (argc == 1) {
+            // runs for the paper
+            for (int t = 500; t <= 1024000; t *= 2) {
                 std::cout << "Running " << t << " timesteps" << std::endl;
                 PFHub1aPeriodic simulation(96, t);
                 simulation.timestep(t);
                 simulation.output();
             }
-            for (int g=96; g<=6144; g*=2) {
+            for (int g = 96; g <= 6144; g *= 2) {
                 std::cout << "Running " << g << " grid points" << std::endl;
                 PFHub1aPeriodic simulation(g, 500);
                 simulation.timestep(500);
@@ -24,7 +24,7 @@ int main(int argc, char* argv[]) {
             try {
                 int grid_points = std::stoi(argv[1]);
                 int timesteps = std::stoi(argv[2]);
-                bool should_write = (argc==3);  //TODO: flag?  Command line stuff is fairly temporary
+                bool should_write = (argc == 3); // TODO: flag?  Command line stuff is fairly temporary
                 PFHub1aPeriodic simulation(grid_points, timesteps);
                 simulation.timestep(timesteps);
                 if (should_write)
