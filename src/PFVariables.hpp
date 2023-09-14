@@ -16,22 +16,27 @@ class PFVariables {
     using memory_space = typename execution_space::memory_space;
     using Mesh = Cajita::UniformMesh<double, NumSpaceDim>;
     using CajitaArray = std::shared_ptr<Cajita::Array<double, Cajita::Node, Mesh, memory_space>>;
-    using View_type = std::conditional_t<3 == NumSpaceDim, Kokkos::View<double****, memory_space>, Kokkos::View<double***, memory_space>>;
-private:
-    std::array<int, NumSpaceDim> array_size;    //number of x, y, (and possibly z) points
+    using View_type = std::conditional_t<3 == NumSpaceDim, Kokkos::View<double****, memory_space>,
+                                         Kokkos::View<double***, memory_space>>;
+
+  private:
+    std::array<int, NumSpaceDim> array_size; // number of x, y, (and possibly z) points
     std::shared_ptr<Cajita::Experimental::HeffteFastFourierTransform<
-        Cajita::Node, Mesh, double, memory_space, execution_space, Cajita::Experimental::Impl::FFTBackendDefault>> fft_calculator;
-public:
+        Cajita::Node, Mesh, double, memory_space, execution_space, Cajita::Experimental::Impl::FFTBackendDefault>>
+        fft_calculator;
+
+  public:
     std::array<CajitaArray, NumVariables> arrays;
 
-    PFVariables(std::shared_ptr<Cajita::ArrayLayout<Cajita::Node, Mesh>> layout, std::array<std::string, NumVariables> names) {
-        //create an array and store the name of each variable:
-        for(std::size_t i=0; i<NumVariables; i++) {
+    PFVariables(std::shared_ptr<Cajita::ArrayLayout<Cajita::Node, Mesh>> layout,
+                std::array<std::string, NumVariables> names) {
+        // create an array and store the name of each variable:
+        for (std::size_t i = 0; i < NumVariables; i++) {
             arrays[i] = Cajita::createArray<double, memory_space>(names[i], layout);
         }
-        //Record the array size for each spatial dimension:
+        // Record the array size for each spatial dimension:
         const auto GlobalMesh = layout->localGrid()->globalGrid().globalMesh();
-        for(std::size_t i=0; i<NumSpaceDim; i++) {
+        for (std::size_t i = 0; i < NumSpaceDim; i++) {
             array_size[i] = GlobalMesh.globalNumCell(i);
         }
         fft_calculator = Cajita::Experimental::createHeffteFastFourierTransform<double, memory_space>(*layout);
@@ -55,50 +60,51 @@ public:
         return Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), arrays[index]->view());
     }
 
-    std::string save_name(std::string run_name, [[maybe_unused]]  const int index, [[maybe_unused]] const int timesteps_done = -1) {
+    std::string save_name(std::string run_name, [[maybe_unused]] const int index,
+                          [[maybe_unused]] const int timesteps_done = -1) {
         std::stringstream name;
-        #ifdef RESULTS_PATH
+#ifdef RESULTS_PATH
         name << RESULTS_PATH;
-        #endif
+#endif
         name << run_name << "_" << arrays[index]->label() << ".dat";
         return name.str();
     }
 
-    //If unfinished and just saving progress, pass in timesteps_done
+    // If unfinished and just saving progress, pass in timesteps_done
     void save(const int index, [[maybe_unused]] std::string run_name, [[maybe_unused]] const int timesteps_done = -1) {
-        Cajita::Experimental::BovWriter::writeTimeStep(999999, 0, *arrays[index]);  //use 999999 to mark it for move
-        #ifdef RESULTS_PATH  //Comes from the CMake build; if not defined, won't have file I/O
+        Cajita::Experimental::BovWriter::writeTimeStep(999999, 0, *arrays[index]); // use 999999 to mark it for move
+#ifdef RESULTS_PATH // Comes from the CMake build; if not defined, won't have file I/O
         try {
             std::string old_name = "grid_" + arrays[index]->label() + "_999999.dat";
             std::filesystem::rename(old_name, save_name(run_name, index, timesteps_done));
-            //TODO: Deal with the .bov file?
-        } catch (std::filesystem::filesystem_error &e) {
+            // TODO: Deal with the .bov file?
+        } catch (std::filesystem::filesystem_error& e) {
             std::cerr << "Error when saving: " << e.what() << std::endl;
         }
-        #endif
+#endif
     }
 
     void load(std::string run_name, const int timesteps_done = -1) {
-        for (std::size_t index=0; index<NumVariables; index++) {
-            assert(NumSpaceDim==2);    //currently not supported for 3D
-            //open the file:
-            std::fstream infile(save_name(run_name, index, timesteps_done), std::fstream::in|std::fstream::binary);
-            //read it:
+        for (std::size_t index = 0; index < NumVariables; index++) {
+            assert(NumSpaceDim == 2); // currently not supported for 3D
+            // open the file:
+            std::fstream infile(save_name(run_name, index, timesteps_done), std::fstream::in | std::fstream::binary);
+            // read it:
             const auto view = arrays[index]->view();
             double buffer[2];
-            for (int j=0; j<array_size[1]; j++) {
-                for (int i=0; i<array_size[0]; i++) {
-                    infile.read((char*)buffer, 2*sizeof(double));
+            for (int j = 0; j < array_size[1]; j++) {
+                for (int i = 0; i < array_size[0]; i++) {
+                    infile.read((char*)buffer, 2 * sizeof(double));
                     view(i, j, 0) = buffer[0];
                     view(i, j, 1) = buffer[1];
                 }
-                //since the grid is periodic, it writes the first value in the row again, so "burn it off":
-                infile.read((char*)buffer, 2*sizeof(double));
+                // since the grid is periodic, it writes the first value in the row again, so "burn it off":
+                infile.read((char*)buffer, 2 * sizeof(double));
             }
         }
     }
 };
 
-}
+} // namespace CabanaPF
 
 #endif

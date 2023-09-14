@@ -1,0 +1,14 @@
+BasedOnStyle:  LLVM
+---
+Language:        Cpp
+ColumnLimit: 120
+AlwaysBreakTemplateDeclarations: true
+BinPackParameters: true
+IndentWidth: 4
+SpacesInParentheses: false
+BreakConstructorInitializersBeforeComma: false
+PointerAlignment: Left
+AlwaysBreakAfterReturnType: None
+KeepEmptyLinesAtTheStartOfBlocks: false
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortFunctionsOnASingleLine: Empty
