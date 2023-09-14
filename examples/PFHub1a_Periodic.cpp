@@ -30,7 +30,7 @@ int main(int argc, char* argv[]) {
                 if (should_write)
                     simulation.output();
                 std::cout << "done" << std::endl;
-            } catch (std::logic_error) {
+            } catch (std::logic_error const&) {
                 std::cout << "Usage: ./Benchmark [grid_points] [timesteps]" << std::endl;
             }
         }

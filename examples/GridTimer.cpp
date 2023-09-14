@@ -16,7 +16,7 @@ int main(int argc, char* argv[]) {
         try {
             for (int i = 1; i < argc; i++)
                 runs.push_back(std::stoi(argv[i]));
-        } catch (std::logic_error) {
+        } catch (std::logic_error const&) {
             std::cout << "Usage: ./GridTimer [grid_points] [grid_points] [...]" << std::endl;
             ;
             return 1;
