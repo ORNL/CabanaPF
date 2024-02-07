@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.16)
 project(CabanaPF CXX)
 
 include(GNUInstallDirs)
@@ -14,6 +14,14 @@ if(NOT Cabana_ENABLE_HEFFTE)
 endif()
 
 find_package(GTest)
+# Workaround for FindGTest module in CMake older than 3.20
+if(TARGET GTest::gtest)
+  set(gtest_target GTest::gtest)
+elseif(TARGET GTest::GTest)
+  set(gtest_target GTest::GTest)
+else()
+  message(FATAL_ERROR "bug in GTest find module workaround")
+endif()
 
 add_subdirectory(src)
 
