@@ -6,6 +6,9 @@ on:
 
 jobs:
   CI:
+    defaults:
+      run:
+        shell: bash
     strategy:
       matrix:
         backend: ["OPENMP", "SERIAL"]
@@ -38,12 +41,11 @@ jobs:
       - name: Build heffte
         working-directory: heffte
         run: |
-          heffte_cmake_opts+=( -DHeffte_ENABLE_FFTW=ON )
           cmake -B build \
             -DBUILD_SHARED_LIBS=ON \
             -DCMAKE_INSTALL_PREFIX=$HOME/heffte \
             -DCMAKE_BUILD_TYPE=${{ matrix.cmake_build_type }} \
-            ${heffte_cmake_opts[@]}
+            -DHeffte_ENABLE_FFTW=ON
           cmake --build build --parallel 2
           cmake --install build
       - name: Checkout Cabana
@@ -55,7 +57,7 @@ jobs:
       - name: Build Cabana
         working-directory: cabana
         run: |
-          cabana_cmake_opts+=( -DCMAKE_DISABLE_FIND_PACKAGE_SILO=ON -DCMAKE_DISABLE_FIND_PACKAGE_HDF5=ON )
+          cabana_cmake_opts+=( -DCMAKE_DISABLE_FIND_PACKAGE_SILO=ON -DCMAKE_DISABLE_FIND_PACKAGE_HDF5=ON -DCabana_DISABLE_CAJITA_DEPRECATION_WARNINGS=ON )
           cmake -B build \
             -DCMAKE_BUILD_TYPE=${{ matrix.cmake_build_type }} \
             -DCMAKE_INSTALL_PREFIX=$HOME/Cabana \
