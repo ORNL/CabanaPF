@@ -1,3 +1,4 @@
-/build/
-/results/
+build*/
+results/
+/.vscode/
 *.sh

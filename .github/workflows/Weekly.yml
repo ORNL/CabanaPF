@@ -57,7 +57,7 @@ jobs:
       - name: Build Cabana
         working-directory: cabana
         run: |
-          cabana_cmake_opts+=( -DCMAKE_DISABLE_FIND_PACKAGE_SILO=ON -DCMAKE_DISABLE_FIND_PACKAGE_HDF5=ON -DCabana_DISABLE_CAJITA_DEPRECATION_WARNINGS=ON )
+          cabana_cmake_opts+=( -DCMAKE_DISABLE_FIND_PACKAGE_SILO=ON -DCMAKE_DISABLE_FIND_PACKAGE_HDF5=ON )
           cmake -B build \
             -DCMAKE_BUILD_TYPE=${{ matrix.cmake_build_type }} \
             -DCMAKE_INSTALL_PREFIX=$HOME/Cabana \

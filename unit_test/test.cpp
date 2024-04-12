@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <Cabana_Core.hpp>
-#include <Cajita.hpp>
+#include <Cabana_Grid.hpp>
 #include <PFHub.hpp>
 #include <PFVariables.hpp>
 
@@ -77,13 +77,13 @@ TEST(PFHub1a, AllTimestep) {
 
 #ifdef RESULTS_PATH
 TEST(PFVariables, saveload) {
-    auto global_mesh = Cajita::createUniformGlobalMesh(std::array<double, 2>{0, 0}, std::array<double, 2>{6, 6},
-                                                       std::array<int, 2>{3, 3});
-    Cajita::DimBlockPartitioner<2> partitioner;
+    auto global_mesh = Cabana::Grid::createUniformGlobalMesh(std::array<double, 2>{0, 0}, std::array<double, 2>{6, 6},
+                                                             std::array<int, 2>{3, 3});
+    Cabana::Grid::DimBlockPartitioner<2> partitioner;
     auto global_grid =
-        Cajita::createGlobalGrid(MPI_COMM_WORLD, global_mesh, std::array<bool, 2>{true, true}, partitioner);
-    auto local_grid = Cajita::createLocalGrid(global_grid, 0);
-    auto layout = createArrayLayout(local_grid, 2, Cajita::Node());
+        Cabana::Grid::createGlobalGrid(MPI_COMM_WORLD, global_mesh, std::array<bool, 2>{true, true}, partitioner);
+    auto local_grid = Cabana::Grid::createLocalGrid(global_grid, 0);
+    auto layout = createArrayLayout(local_grid, 2, Cabana::Grid::Node());
     PFVariables vars(layout, std::array<std::string, 1>{"a"});
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {

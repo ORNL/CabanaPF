@@ -1,7 +1,7 @@
 #ifndef RUNNER_H
 #define RUNNER_H
 
-#include <Cajita.hpp>
+#include <Cabana_Grid.hpp>
 
 namespace CabanaPF {
 
@@ -11,10 +11,10 @@ class CabanaPFRunner {
   protected:
     using exec_space = Kokkos::DefaultExecutionSpace;
     using device_type = exec_space::device_type;
-    using Mesh = Cajita::UniformMesh<double, NumSpaceDim>;
+    using Mesh = Cabana::Grid::UniformMesh<double, NumSpaceDim>;
 
-    std::shared_ptr<Cajita::LocalGrid<Mesh>> local_grid;
-    std::shared_ptr<Cajita::ArrayLayout<Cajita::Node, Mesh>> layout;
+    std::shared_ptr<Cabana::Grid::LocalGrid<Mesh>> local_grid;
+    std::shared_ptr<Cabana::Grid::ArrayLayout<Cabana::Grid::Node, Mesh>> layout;
     int timesteps_done;
     bool have_initialized;
 
@@ -30,26 +30,28 @@ class CabanaPFRunner {
         high_corner.fill(size);
         std::array<int, NumSpaceDim> num_cell;
         num_cell.fill(grid_points);
-        auto global_mesh = Cajita::createUniformGlobalMesh(low_corner, high_corner, num_cell);
-        Cajita::DimBlockPartitioner<NumSpaceDim> partitioner;
+        auto global_mesh = Cabana::Grid::createUniformGlobalMesh(low_corner, high_corner, num_cell);
+        Cabana::Grid::DimBlockPartitioner<NumSpaceDim> partitioner;
         std::array<bool, NumSpaceDim> periodic;
         periodic.fill(true);
-        auto global_grid = Cajita::createGlobalGrid(MPI_COMM_WORLD, global_mesh, periodic, partitioner);
+        auto global_grid = Cabana::Grid::createGlobalGrid(MPI_COMM_WORLD, global_mesh, periodic, partitioner);
 
         // create local stuff:
-        local_grid = Cajita::createLocalGrid(global_grid, 0);
-        layout = createArrayLayout(local_grid, 2, Cajita::Node()); // 2: real & imag
+        local_grid = Cabana::Grid::createLocalGrid(global_grid, 0);
+        layout = createArrayLayout(local_grid, 2, Cabana::Grid::Node()); // 2: real & imag
     }
 
     template <class FunctorType>
     void node_parallel_for(const std::string& label, FunctorType lambda) {
-        Cajita::grid_parallel_for(label, exec_space(), *local_grid, Cajita::Own(), Cajita::Node(), lambda);
+        Cabana::Grid::grid_parallel_for(label, exec_space(), *local_grid, Cabana::Grid::Own(), Cabana::Grid::Node(),
+                                        lambda);
     }
 
     template <class FunctorType>
     double node_parallel_reduce(const std::string& label, FunctorType lambda) {
         double result = 0;
-        Cajita::grid_parallel_reduce(label, exec_space(), *local_grid, Cajita::Own(), Cajita::Node(), lambda, result);
+        Cabana::Grid::grid_parallel_reduce(label, exec_space(), *local_grid, Cabana::Grid::Own(), Cabana::Grid::Node(),
+                                           lambda, result);
         return result;
     }
 

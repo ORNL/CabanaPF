@@ -67,7 +67,7 @@ jobs:
       - name: Build Cabana
         working-directory: cabana
         run: |
-          cabana_cmake_opts+=( -D CMAKE_DISABLE_FIND_PACKAGE_SILO=ON -D CMAKE_DISABLE_FIND_PACKAGE_HDF5=ON -D Cabana_DISABLE_CAJITA_DEPRECATION_WARNINGS=ON )
+          cabana_cmake_opts+=( -D CMAKE_DISABLE_FIND_PACKAGE_SILO=ON -D CMAKE_DISABLE_FIND_PACKAGE_HDF5=ON )
           cmake -B build \
             -D CMAKE_BUILD_TYPE=${{ matrix.cmake_build_type }} \
             -D CMAKE_CXX_COMPILER=${{ matrix.cxx }} \
@@ -149,7 +149,7 @@ jobs:
       - name: Build Cabana
         working-directory: cabana
         run: |
-          cabana_cmake_opts+=( -D CMAKE_DISABLE_FIND_PACKAGE_SILO=ON -D CMAKE_DISABLE_FIND_PACKAGE_HDF5=ON -D Cabana_DISABLE_CAJITA_DEPRECATION_WARNINGS=ON )
+          cabana_cmake_opts+=( -D CMAKE_DISABLE_FIND_PACKAGE_SILO=ON -D CMAKE_DISABLE_FIND_PACKAGE_HDF5=ON )
           cmake -B build \
             -D CMAKE_INSTALL_PREFIX=$HOME/Cabana \
             -D MPIEXEC_MAX_NUMPROCS=2 -D MPIEXEC_PREFLAGS="--oversubscribe" \
