@@ -9,7 +9,7 @@ using namespace CabanaPF;
 
 /*
 PFHub1a benchmark problem (Spinodal Decomposition): https://pages.nist.gov/pfhub/benchmarks/benchmark1.ipynb/
-These results that are being tested against come from the python implementation of a pseudospectral implentation of
+These results that are being tested against come from the python implementation of a pseudospectral implementation of
 PFHub1a Available here (ORNL internal): https://code.ornl.gov/71d/phase-field-example-codes Most points were randomly
 selected
 */
@@ -17,7 +17,7 @@ TEST(PFHub1a, Initialization) {
     PFHub1aBenchmark simulation(96, 500);
     simulation.timestep(0); // trigger initialization
     auto results = simulation.get_cpu_view();
-    //"true results" come from python implentation (see previous comment)
+    //"true results" come from python implementation (see previous comment)
     // check 4 points for basic indexing/results:
     EXPECT_DOUBLE_EQ(0.53, results(0, 0, 0));
     EXPECT_DOUBLE_EQ(0.48803644628427617, results(40, 0, 0));
@@ -41,7 +41,7 @@ TEST(PFHub1a, OneTimestep) {
     PFHub1aBenchmark simulation(96, 500);
     simulation.timestep(1);
     auto results = simulation.get_cpu_view();
-    // test at extreme points and 10 random points.  Correct values come from python implemtation (see above)
+    // test at extreme points and 10 random points.  Correct values come from python implementation (see above)
     EXPECT_DOUBLE_EQ(0.5214689225639189, results(0, 0, 0));
     EXPECT_DOUBLE_EQ(0.49527507173039187, results(95, 95, 0));
     EXPECT_DOUBLE_EQ(0.5076626764926879, results(15, 19, 0));
@@ -104,7 +104,7 @@ TEST(PFVariables, saveload) {
 }
 #endif
 
-// Similar to above, the python implmentation was modified to use the periodic initial conditions
+// Similar to above, the python implementation was modified to use the periodic initial conditions
 TEST(PFHub1aPeriodic, periodic) {
     PFHub1aPeriodic simulation(96, 500);
     simulation.timestep(0);
