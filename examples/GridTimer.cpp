@@ -1,4 +1,3 @@
-#include <Cajita.hpp>
 #include <PFHub.hpp>
 
 #include <Cabana_BenchmarkUtils.hpp>

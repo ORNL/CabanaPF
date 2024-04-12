@@ -1,7 +1,7 @@
 #ifndef PFHUB_H
 #define PFHUB_H
 
-#include <Cajita.hpp>
+#include <Cabana_Grid.hpp>
 #include <PFVariables.hpp>
 #include <Runner.hpp>
 

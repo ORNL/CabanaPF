@@ -8,6 +8,6 @@ target_include_directories(CabanaPF INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}
                            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
 
-target_link_libraries(CabanaPF INTERFACE Cabana::Cajita)
+target_link_libraries(CabanaPF INTERFACE Cabana::Grid)
 
 install(TARGETS CabanaPF DESTINATION ${CMAKE_INSTALL_LIBDIR})
