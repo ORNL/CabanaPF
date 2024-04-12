@@ -11,4 +11,3 @@ target_include_directories(CabanaPF INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}
 target_link_libraries(CabanaPF INTERFACE Cabana::Cajita)
 
 install(TARGETS CabanaPF DESTINATION ${CMAKE_INSTALL_LIBDIR})
-
