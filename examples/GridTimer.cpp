@@ -17,7 +17,6 @@ int main(int argc, char* argv[]) {
                 runs.push_back(std::stoi(argv[i]));
         } catch (std::logic_error const&) {
             std::cout << "Usage: ./GridTimer [grid_points] [grid_points] [...]" << std::endl;
-            ;
             return 1;
         }
 
@@ -27,8 +26,8 @@ int main(int argc, char* argv[]) {
             std::cout << "Running " << runs[i] << " grid points" << std::endl;
             for (int reps = 0; reps < 5; reps++) {
                 timer.start(i);
-                PFHub1aPeriodic simul(runs[i], 500);
-                simul.timestep(500);
+                PFHub1aPeriodic simul(runs[i], 2);
+                simul.run(500);
                 timer.stop(i);
             }
         }

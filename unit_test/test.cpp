@@ -14,8 +14,8 @@ PFHub1a Available here (ORNL internal): https://code.ornl.gov/71d/phase-field-ex
 selected
 */
 TEST(PFHub1a, Initialization) {
-    PFHub1aBenchmark simulation(96, 500);
-    simulation.timestep(0); // trigger initialization
+    PFHub1aBenchmark simulation(96, 2);
+    simulation.run(0); // trigger initialization
     auto results = simulation.get_cpu_view();
     //"true results" come from python implementation (see previous comment)
     // check 4 points for basic indexing/results:
@@ -38,8 +38,8 @@ TEST(PFHub1a, Initialization) {
 }
 
 TEST(PFHub1a, OneTimestep) {
-    PFHub1aBenchmark simulation(96, 500);
-    simulation.timestep(1);
+    PFHub1aBenchmark simulation(96, 2);
+    simulation.run(1);
     auto results = simulation.get_cpu_view();
     // test at extreme points and 10 random points.  Correct values come from python implementation (see above)
     EXPECT_DOUBLE_EQ(0.5214689225639189, results(0, 0, 0));
@@ -57,8 +57,8 @@ TEST(PFHub1a, OneTimestep) {
 }
 
 TEST(PFHub1a, AllTimestep) {
-    PFHub1aBenchmark simulation(96, 500);
-    simulation.timestep(500);
+    PFHub1aBenchmark simulation(96, 2);
+    simulation.run(500);
     auto results = simulation.get_cpu_view();
     // as before, (0,0), (95,95), and 10 random points, testing against python
     EXPECT_NEAR(0.4412261765305555, results(0, 0, 0), 1e-9);
@@ -106,8 +106,8 @@ TEST(PFVariables, saveload) {
 
 // Similar to above, the python implementation was modified to use the periodic initial conditions
 TEST(PFHub1aPeriodic, periodic) {
-    PFHub1aPeriodic simulation(96, 500);
-    simulation.timestep(0);
+    PFHub1aPeriodic simulation(96, 2);
+    simulation.run(0);
     auto results = simulation.get_cpu_view();
     EXPECT_NEAR(0.53, results(0, 0, 0), 1e-9);
     EXPECT_NEAR(0.5280872555770657, results(95, 95, 0), 1e-9);
@@ -115,7 +115,7 @@ TEST(PFHub1aPeriodic, periodic) {
     EXPECT_NEAR(0.5096103712433676, results(39, 36, 0), 1e-9);
     EXPECT_NEAR(0.5122826024701564, results(46, 40, 0), 1e-9);
 
-    simulation.timestep(1);
+    simulation.run(1);
     results = simulation.get_cpu_view();
     EXPECT_NEAR(0.5316722086053631, results(0, 0, 0), 1e-9);
     EXPECT_NEAR(0.5296339912527902, results(95, 95, 0), 1e-9);
@@ -123,7 +123,7 @@ TEST(PFHub1aPeriodic, periodic) {
     EXPECT_NEAR(0.510243048825588, results(87, 78, 0), 1e-9);
     EXPECT_NEAR(0.5092351158827323, results(6, 19, 0), 1e-9);
 
-    simulation.timestep(499);
+    simulation.run_until_steps(500);
     results = simulation.get_cpu_view();
     EXPECT_NEAR(0.6993369106233298, results(0, 0, 0), 1e-9);
     EXPECT_NEAR(0.7014658707445363, results(95, 95, 0), 1e-9);
