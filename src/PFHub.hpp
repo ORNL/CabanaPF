@@ -109,6 +109,8 @@ class PFHub1aBase : public CabanaPFRunner<2> {
         // timestep anyways)
         vars.fft_inverse(0);
     }
+
+    virtual void output() {}
 };
 
 class PFHub1aBenchmark : public PFHub1aBase {
