@@ -111,6 +111,9 @@ class PFHub1aBase : public CabanaPFRunner<2> {
     }
 
     virtual void output() {}
+
+    // needed to allow polymorphism:
+    virtual ~PFHub1aBase() {}
 };
 
 class PFHub1aBenchmark : public PFHub1aBase {
@@ -131,7 +134,7 @@ class PFHub1aBenchmark : public PFHub1aBase {
             });
     }
 
-    void output() {
+    void output() override {
         std::stringstream s;
         s << "1aBenchmark_N" << grid_points << "TS" << timesteps_done;
         vars.save(0, s.str());
@@ -159,7 +162,7 @@ class PFHub1aPeriodic : public PFHub1aBase {
             });
     }
 
-    void output() {
+    void output() override {
         std::stringstream s;
         s << "1aPeriodic_N" << grid_points << "TS" << timesteps_per_t;
         vars.save(0, s.str());
