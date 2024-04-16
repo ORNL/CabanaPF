@@ -32,8 +32,8 @@ class PFHub1aBase : public CabanaPFRunner<2> {
     const double dt;
 
     PFHub1aBase(int grid_points, int timesteps_per_t)
-        : CabanaPFRunner(grid_points, _SIZE, timesteps_per_t), cell_size{_SIZE / grid_points},
-          grid_points{grid_points}, dt{1.0 / timesteps_per_t}, vars{layout, {"c", "df_dc"}} {
+        : CabanaPFRunner(grid_points, _SIZE, timesteps_per_t), vars{layout, {"c", "df_dc"}},
+          grid_points{grid_points}, cell_size{_SIZE / grid_points}, dt{1.0 / timesteps_per_t} {
         laplacian_view = Kokkos::View<cdouble**, device_type>("laplacian", grid_points, grid_points);
     }
 
