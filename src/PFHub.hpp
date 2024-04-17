@@ -29,11 +29,10 @@ class PFHub1aBase : public CabanaPFRunner<2> {
 
     const int grid_points;
     const double cell_size;
-    const double dt;
 
-    PFHub1aBase(int grid_points, int timesteps_per_t)
-        : CabanaPFRunner(grid_points, _SIZE, timesteps_per_t), vars{layout, {"c", "df_dc"}},
-          grid_points{grid_points}, cell_size{_SIZE / grid_points}, dt{1.0 / timesteps_per_t} {
+    PFHub1aBase(int grid_points, double dt)
+        : CabanaPFRunner(grid_points, _SIZE, dt), vars{layout, {"c", "df_dc"}},
+          grid_points{grid_points}, cell_size{_SIZE / grid_points} {
         laplacian_view = Kokkos::View<cdouble**, device_type>("laplacian", grid_points, grid_points);
     }
 
@@ -136,11 +135,11 @@ class PFHub1aBenchmark : public PFHub1aBase {
 
     void output() override {
         std::stringstream s;
-        s << "1aBenchmark_N" << grid_points << "TS" << timesteps_done;
+        s << "1aBenchmark_N" << grid_points << "_DT" << std::fixed << std::setprecision(3) << std::scientific << dt;
         vars.save(0, s.str());
     }
 
-    PFHub1aBenchmark(int grid_points, int timesteps_per_t) : PFHub1aBase{grid_points, timesteps_per_t} {}
+    PFHub1aBenchmark(int grid_points, double dt) : PFHub1aBase{grid_points, dt} {}
 };
 
 class PFHub1aPeriodic : public PFHub1aBase {
@@ -164,11 +163,11 @@ class PFHub1aPeriodic : public PFHub1aBase {
 
     void output() override {
         std::stringstream s;
-        s << "1aPeriodic_N" << grid_points << "TS" << timesteps_per_t;
+        s << "1aPeriodic_N" << grid_points << "_DT" << std::fixed << std::setprecision(3) << std::scientific << dt;
         vars.save(0, s.str());
     }
 
-    PFHub1aPeriodic(int grid_points, int timesteps) : PFHub1aBase{grid_points, timesteps} {}
+    PFHub1aPeriodic(int grid_points, double dt) : PFHub1aBase{grid_points, dt} {}
 };
 
 } // namespace CabanaPF

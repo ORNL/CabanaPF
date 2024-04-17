@@ -20,10 +20,10 @@ class CabanaPFRunner {
 
   public:
     const int grid_points;
-    const int timesteps_per_t;
+    const double dt;
 
-    CabanaPFRunner(int grid_points, double size, int timesteps_per_t)
-        : timesteps_done{0}, have_initialized{false}, grid_points{grid_points}, timesteps_per_t{timesteps_per_t} {
+    CabanaPFRunner(int grid_points, double size, double dt)
+        : timesteps_done{0}, have_initialized{false}, grid_points{grid_points}, dt{dt} {
         std::array<double, NumSpaceDim> low_corner;
         low_corner.fill(0.0);
         std::array<double, NumSpaceDim> high_corner;
@@ -67,14 +67,18 @@ class CabanaPFRunner {
         }
     }
 
+    void run_for_time(const double time) {
+        run(round(time / dt));
+    }
+
     // runs as many timesteps as are needed to have done a certain number
     void run_until_steps(const int timesteps) {
         run(timesteps - timesteps_done);
     }
 
     // runs until a certain time.  Denominator allows for fractional times
-    void run_until_time(const int time, const int denominator = 1) {
-        run(time * timesteps_per_t / denominator - timesteps_done);
+    void run_until_time(const double time) {
+        run(round(time / dt - timesteps_done));
     }
 
     int get_timesteps_done() const {

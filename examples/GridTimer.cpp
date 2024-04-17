@@ -12,18 +12,17 @@ int main(int argc, char* argv[]) {
 
         // read in grid points to run off the command line:
         std::vector<int> runs;
-        int timesteps_per_t = 0, end_time = 0;
+        double dt = 0, end_time = 0;
         try {
             if (argc < 4)
                 // Need at least: Executable name, timesteps, end time, one grid points
                 throw std::invalid_argument("");
-            timesteps_per_t = std::stoi(argv[2]);
+            dt = std::stoi(argv[2]);
             end_time = std::stoi(argv[3]);
             for (int i = 3; i < argc; i++)
                 runs.push_back(std::stoi(argv[i]));
         } catch (std::invalid_argument const&) {
-            std::cout << "Usage: ./GridTimer <timesteps per unit time> <end time> <grid points> [grid points ...]"
-                      << std::endl;
+            std::cout << "Usage: ./PerformanceRuns <dt> <end time> <grid points> [grid points ...]" << std::endl;
             return 1;
         }
 
@@ -33,7 +32,7 @@ int main(int argc, char* argv[]) {
             std::cout << "Running " << runs[i] << " grid points" << std::endl;
             for (int reps = 0; reps < 5; reps++) {
                 timer.start(i);
-                PFHub1aPeriodic simul(runs[i], timesteps_per_t);
+                PFHub1aPeriodic simul(runs[i], dt);
                 simul.run_until_time(end_time);
                 timer.stop(i);
             }
