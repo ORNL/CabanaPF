@@ -56,7 +56,7 @@ class CabanaPFRunner {
     }
 
     // Do a certain number of timesteps:
-    void run(const int timesteps) {
+    void run_for_steps(const int timesteps) {
         if (!have_initialized) {
             initialize();
             have_initialized = true;
@@ -67,18 +67,19 @@ class CabanaPFRunner {
         }
     }
 
+    // runs the closest number of timesteps to time/dt
     void run_for_time(const double time) {
-        run(round(time / dt));
+        run_for_steps(round(time / dt));
     }
 
     // runs as many timesteps as are needed to have done a certain number
     void run_until_steps(const int timesteps) {
-        run(timesteps - timesteps_done);
+        run_for_steps(timesteps - timesteps_done);
     }
 
-    // runs until a certain time.  Denominator allows for fractional times
+    // runs until timesteps_done*dt is as close as possible to specified time
     void run_until_time(const double time) {
-        run(round(time / dt - timesteps_done));
+        run_for_steps(round(time / dt - timesteps_done));
     }
 
     int get_timesteps_done() const {
