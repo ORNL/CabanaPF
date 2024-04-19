@@ -16,24 +16,23 @@ class PFHub1aBase : public CabanaPFRunner<2> {
   protected:
     using cdouble = Kokkos::complex<double>;
 
-    const double cell_size;
-    const int timesteps;
-    const int grid_points;
     Kokkos::View<cdouble**, device_type> laplacian_view;
+    PFVariables<2, 2> vars;
 
   public:
-    PFVariables<2, 2> vars;
     static constexpr double _SIZE = 200.;
-    static constexpr double END_TIME = 250.;
     static constexpr double _KAPPA = 2.;
     static constexpr double _M = 5.;
     static constexpr double _RHO = 5.;
     static constexpr double _C_ALPHA = .3;
     static constexpr double _C_BETA = .7;
 
-    PFHub1aBase(int grid_points, int timesteps)
-        : CabanaPFRunner(grid_points, timesteps, _SIZE), cell_size{_SIZE / grid_points}, timesteps{timesteps},
-          grid_points{grid_points}, vars{layout, {"c", "df_dc"}} {
+    const int grid_points;
+    const double cell_size;
+
+    PFHub1aBase(int grid_points, double dt)
+        : CabanaPFRunner(grid_points, _SIZE, dt), vars{layout, {"c", "df_dc"}},
+          grid_points{grid_points}, cell_size{_SIZE / grid_points} {
         laplacian_view = Kokkos::View<cdouble**, device_type>("laplacian", grid_points, grid_points);
     }
 
@@ -68,7 +67,7 @@ class PFHub1aBase : public CabanaPFRunner<2> {
         initial_conditions();
     }
 
-    void pre_step() override {
+    void calc_dfdc() {
         // Calculate df_dc values:
         const auto c_view = vars[0];
         const auto dfdc_view = vars[1];
@@ -85,16 +84,16 @@ class PFHub1aBase : public CabanaPFRunner<2> {
     }
 
     void step() override {
+        calc_dfdc();
         // enter Fourier space:
         vars.fft_forward(0);
         vars.fft_forward(1);
 
-        const double dt = END_TIME / timesteps;
-        const double M = _M, KAPPA = _KAPPA;
+        // step forward with semi-implicit Euler in Fourier space:
+        const double dt = this->dt, M = _M, KAPPA = _KAPPA;
         const auto c = vars[0];
         const auto df_dc = vars[1];
         const auto laplacian = laplacian_view;
-
         node_parallel_for(
             "timestep", KOKKOS_LAMBDA(const int i, const int j) {
                 const cdouble df_dc_hat(df_dc(i, j, 0), df_dc(i, j, 1));
@@ -105,12 +104,15 @@ class PFHub1aBase : public CabanaPFRunner<2> {
                 c(i, j, 0) = c_hat.real();
                 c(i, j, 1) = c_hat.imag();
             });
-    }
-
-    void post_step() override {
-        // rescue concentration values from Fourier space:
+        // rescue concentration values from Fourier space (dfdc can be left there since it gets recalculated next
+        // timestep anyways)
         vars.fft_inverse(0);
     }
+
+    virtual void output() {}
+
+    // needed to allow polymorphism:
+    virtual ~PFHub1aBase() {}
 };
 
 class PFHub1aBenchmark : public PFHub1aBase {
@@ -131,13 +133,13 @@ class PFHub1aBenchmark : public PFHub1aBase {
             });
     }
 
-    void output() {
+    void output() override {
         std::stringstream s;
-        s << "1aBenchmark_N" << grid_points << "T" << timesteps;
+        s << "1aBenchmark_N" << grid_points << "_DT" << std::fixed << std::setprecision(3) << std::scientific << dt;
         vars.save(0, s.str());
     }
 
-    PFHub1aBenchmark(int grid_points, int timesteps) : PFHub1aBase{grid_points, timesteps} {}
+    PFHub1aBenchmark(int grid_points, double dt) : PFHub1aBase{grid_points, dt} {}
 };
 
 class PFHub1aPeriodic : public PFHub1aBase {
@@ -159,13 +161,13 @@ class PFHub1aPeriodic : public PFHub1aBase {
             });
     }
 
-    void output() {
+    void output() override {
         std::stringstream s;
-        s << "1aPeriodic_N" << grid_points << "T" << timesteps;
+        s << "1aPeriodic_N" << grid_points << "_DT" << std::fixed << std::setprecision(3) << std::scientific << dt;
         vars.save(0, s.str());
     }
 
-    PFHub1aPeriodic(int grid_points, int timesteps) : PFHub1aBase{grid_points, timesteps} {}
+    PFHub1aPeriodic(int grid_points, double dt) : PFHub1aBase{grid_points, dt} {}
 };
 
 } // namespace CabanaPF

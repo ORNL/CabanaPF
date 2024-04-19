@@ -20,10 +20,10 @@ class CabanaPFRunner {
 
   public:
     const int grid_points;
-    const int timesteps;
+    const double dt;
 
-    CabanaPFRunner(int grid_points, int timesteps, double size)
-        : timesteps_done{0}, have_initialized{false}, grid_points{grid_points}, timesteps{timesteps} {
+    CabanaPFRunner(int grid_points, double size, double dt)
+        : timesteps_done{0}, have_initialized{false}, grid_points{grid_points}, dt{dt} {
         std::array<double, NumSpaceDim> low_corner;
         low_corner.fill(0.0);
         std::array<double, NumSpaceDim> high_corner;
@@ -55,27 +55,40 @@ class CabanaPFRunner {
         return result;
     }
 
-    void timestep(int count) {
+    // Do a certain number of timesteps:
+    void run_for_steps(const int timesteps) {
         if (!have_initialized) {
             initialize();
             have_initialized = true;
         }
-        for (int i = 0; i < count; i++) {
-            pre_step();
+        for (int i = 0; i < timesteps; i++) {
             step();
-            post_step();
             timesteps_done++;
         }
-        if (timesteps_done == timesteps)
-            finalize();
     }
 
-    // Generally, you inherit from this class and implement one or more of these:
+    // runs the closest number of timesteps to time/dt
+    void run_for_time(const double time) {
+        run_for_steps(round(time / dt));
+    }
+
+    // runs as many timesteps as are needed to have done a certain number
+    void run_until_steps(const int timesteps) {
+        run_for_steps(timesteps - timesteps_done);
+    }
+
+    // runs until timesteps_done*dt is as close as possible to specified time
+    void run_until_time(const double time) {
+        run_for_steps(round(time / dt - timesteps_done));
+    }
+
+    int get_timesteps_done() const {
+        return timesteps_done;
+    }
+
+    // Children inherit from this class and implement these:
     virtual void initialize() {} // Called once, before taking the first timestep
-    virtual void pre_step() {}   // Called each timestep
-    virtual void step() {}       // Called each timestep, after pre_step
-    virtual void post_step() {}  // Called each timestep, after step
-    virtual void finalize() {}   // Called once, when the requested number of timesteps have been done
+    virtual void step() {}       // Called to take a timestep
 };
 
 } // namespace CabanaPF
