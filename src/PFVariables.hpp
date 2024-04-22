@@ -4,10 +4,6 @@
 #include <Cabana_Grid.hpp>
 #include <fstream>
 
-#ifdef RESULTS_PATH
-#include <filesystem>
-#endif
-
 namespace CabanaPF {
 
 template <std::size_t NumSpaceDim, std::size_t NumVariables>
@@ -25,6 +21,16 @@ class PFVariables {
         Cabana::Grid::Node, Mesh, double, memory_space, execution_space,
         Cabana::Grid::Experimental::Impl::FFTBackendDefault>>
         fft_calculator;
+
+    // string to be used for Cabana's BOVWriter's prefix argument
+    std::string save_prefix(const int index, std::string run_name) {
+        std::stringstream name;
+#ifdef RESULTS_PATH
+        name << RESULTS_PATH;
+#endif
+        name << run_name << "_" << arrays[index]->label();
+        return name.str();
+    }
 
   public:
     std::array<GridArray, NumVariables> arrays;
@@ -61,48 +67,31 @@ class PFVariables {
         return Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), arrays[index]->view());
     }
 
-    std::string save_name(std::string run_name, [[maybe_unused]] const int index,
-                          [[maybe_unused]] const int timesteps_done = -1) {
+    // Saves an array to file.
+    void save(const int index, std::string run_name, const int timesteps_done, const double time = 0) {
+        const std::string prefix = save_prefix(index, run_name);
+        Cabana::Grid::Experimental::BovWriter::writeTimeStep(prefix, timesteps_done, time, *arrays[index]);
+    }
+
+    // loads the file created by the same arguments to save
+    void load(const int index, std::string run_name, const int timesteps_done) {
+        assert(NumSpaceDim == 2); // currently not supported for 3D
+        // recreate Cabana's naming scheme:
         std::stringstream name;
-#ifdef RESULTS_PATH
-        name << RESULTS_PATH;
-#endif
-        name << run_name << "_" << arrays[index]->label() << ".dat";
-        return name.str();
-    }
-
-    // If unfinished and just saving progress, pass in timesteps_done
-    void save(const int index, [[maybe_unused]] std::string run_name, [[maybe_unused]] const int timesteps_done = -1) {
-        Cabana::Grid::Experimental::BovWriter::writeTimeStep(999999, 0,
-                                                             *arrays[index]); // use 999999 to mark it for move
-#ifdef RESULTS_PATH // Comes from the CMake build; if not defined, won't have file I/O
-        try {
-            std::string old_name = "grid_" + arrays[index]->label() + "_999999.dat";
-            std::filesystem::rename(old_name, save_name(run_name, index, timesteps_done));
-            // TODO: Deal with the .bov file?
-        } catch (std::filesystem::filesystem_error& e) {
-            std::cerr << "Error when saving: " << e.what() << std::endl;
-        }
-#endif
-    }
-
-    void load(std::string run_name, const int timesteps_done = -1) {
-        for (std::size_t index = 0; index < NumVariables; index++) {
-            assert(NumSpaceDim == 2); // currently not supported for 3D
-            // open the file:
-            std::fstream infile(save_name(run_name, index, timesteps_done), std::fstream::in | std::fstream::binary);
-            // read it:
-            const auto view = arrays[index]->view();
-            double buffer[2];
-            for (int j = 0; j < array_size[1]; j++) {
-                for (int i = 0; i < array_size[0]; i++) {
-                    infile.read((char*)buffer, 2 * sizeof(double));
-                    view(i, j, 0) = buffer[0];
-                    view(i, j, 1) = buffer[1];
-                }
-                // since the grid is periodic, it writes the first value in the row again, so "burn it off":
+        name << save_prefix(index, run_name) << "_" << std::setfill('0') << std::setw(6) << timesteps_done << ".dat";
+        // open the file:
+        std::fstream infile(name.str(), std::fstream::in | std::fstream::binary);
+        // read it:
+        const auto view = arrays[index]->view();
+        double buffer[2];
+        for (int j = 0; j < array_size[1]; j++) {
+            for (int i = 0; i < array_size[0]; i++) {
                 infile.read((char*)buffer, 2 * sizeof(double));
+                view(i, j, 0) = buffer[0];
+                view(i, j, 1) = buffer[1];
             }
+            // since the grid is periodic, it writes the first value in the row again, so "burn it off":
+            infile.read((char*)buffer, 2 * sizeof(double));
         }
     }
 };

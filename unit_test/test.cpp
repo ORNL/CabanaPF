@@ -75,7 +75,6 @@ TEST(PFHub1a, AllTimestep) {
     EXPECT_NEAR(0.6482746495041702, results(67, 7, 0), 1e-9);
 }
 
-#ifdef RESULTS_PATH
 TEST(PFVariables, saveload) {
     auto global_mesh = Cabana::Grid::createUniformGlobalMesh(std::array<double, 2>{0, 0}, std::array<double, 2>{6, 6},
                                                              std::array<int, 2>{3, 3});
@@ -94,7 +93,7 @@ TEST(PFVariables, saveload) {
     vars.save(0, "Test", 0);
 
     PFVariables from_file(layout, std::array<std::string, 1>{"a"});
-    from_file.load("Test", 0);
+    from_file.load(0, "Test", 0);
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
             EXPECT_EQ(vars[0](i, j, 0), from_file[0](i, j, 0));
@@ -102,7 +101,6 @@ TEST(PFVariables, saveload) {
         }
     }
 }
-#endif
 
 // Similar to above, the python implementation was modified to use the periodic initial conditions
 TEST(PFHub1aPeriodic, periodic) {
