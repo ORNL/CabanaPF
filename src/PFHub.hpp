@@ -112,7 +112,7 @@ class PFHub1aBase : public CabanaPFRunner<2> {
     // versions of PFHub1a must override this to give themselves a name:
     virtual std::string subproblem_name() const = 0;
     // save a copy of the c grid to a file
-    void snapshot_c() {
+    void output_c() {
         std::stringstream s;
         s << subproblem_name() << "_N" << grid_points << "_DT" << std::fixed << std::setprecision(3) << std::scientific
           << dt;

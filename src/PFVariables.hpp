@@ -25,8 +25,8 @@ class PFVariables {
     // string to be used for Cabana's BOVWriter's prefix argument
     std::string save_prefix(const int index, std::string run_name) {
         std::stringstream name;
-#ifdef RESULTS_PATH
-        name << RESULTS_PATH;
+#ifdef CABANAPF_RESULTS_PATH
+        name << CABANAPF_RESULTS_PATH;
 #endif
         name << run_name << "_" << arrays[index]->label();
         return name.str();

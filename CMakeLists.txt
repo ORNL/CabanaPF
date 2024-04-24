@@ -4,8 +4,8 @@ project(CabanaPF CXX)
 include(GNUInstallDirs)
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
-if(DEFINED RESULTS_PATH)
-  add_compile_definitions(RESULTS_PATH="${RESULTS_PATH}")
+if(DEFINED CABANAPF_RESULTS_PATH)
+  add_compile_definitions(CABANAPF_RESULTS_PATH="${CABANAPF_RESULTS_PATH}")
 endif()
 
 find_package(Cabana)

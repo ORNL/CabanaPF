@@ -24,7 +24,7 @@ int main(int argc, char* argv[]) {
                 throw std::invalid_argument("");
 
             simulation->run_until_time(end_time);
-            simulation->snapshot_c();
+            simulation->output_c();
         } catch (std::invalid_argument const&) {
             std::cout << "Usage: ./PFHub1a <benchmark|periodic> <grid points> <dt> <end time>" << std::endl;
         }
