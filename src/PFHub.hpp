@@ -109,7 +109,15 @@ class PFHub1aBase : public CabanaPFRunner<2> {
         vars.fft_inverse(0);
     }
 
-    virtual void output() {}
+    // versions of PFHub1a must override this to give themselves a name:
+    virtual std::string subproblem_name() const = 0;
+    // save a copy of the c grid to a file
+    void output_c() {
+        std::stringstream s;
+        s << subproblem_name() << "_N" << grid_points << "_DT" << std::fixed << std::setprecision(3) << std::scientific
+          << dt;
+        vars.save(0, s.str(), 0);
+    }
 
     // needed to allow polymorphism:
     virtual ~PFHub1aBase() {}
@@ -133,10 +141,8 @@ class PFHub1aBenchmark : public PFHub1aBase {
             });
     }
 
-    void output() override {
-        std::stringstream s;
-        s << "1aBenchmark_N" << grid_points << "_DT" << std::fixed << std::setprecision(3) << std::scientific << dt;
-        vars.save(0, s.str());
+    std::string subproblem_name() const override {
+        return "1aBenchmark";
     }
 
     PFHub1aBenchmark(int grid_points, double dt) : PFHub1aBase{grid_points, dt} {}
@@ -161,10 +167,8 @@ class PFHub1aPeriodic : public PFHub1aBase {
             });
     }
 
-    void output() override {
-        std::stringstream s;
-        s << "1aPeriodic_N" << grid_points << "_DT" << std::fixed << std::setprecision(3) << std::scientific << dt;
-        vars.save(0, s.str());
+    std::string subproblem_name() const override {
+        return "1aPeriodic";
     }
 
     PFHub1aPeriodic(int grid_points, double dt) : PFHub1aBase{grid_points, dt} {}

@@ -20,7 +20,7 @@ jobs:
         cxx: ['g++', 'clang++']
         backend: ['SERIAL', 'OPENMP']
         cmake_build_type: ['Debug', 'Release']
-        kokkos_ver: ['3.7.02']
+        kokkos_ver: ['4.1.00']
     runs-on: ubuntu-20.04
     container: ghcr.io/ecp-copa/ci-containers/${{ matrix.distro }}
     steps:
@@ -62,7 +62,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: ECP-CoPA/Cabana
-          ref: 0.6.1
+          ref: cd7075fd66bc346c8f28831cfb5b0ea650cf9892
           path: cabana
       - name: Build Cabana
         working-directory: cabana
@@ -102,7 +102,7 @@ jobs:
       matrix:
         cxx: ['nvcc']
         cmake_build_type: ['Release']
-        kokkos_ver: ['3.7.02']
+        kokkos_ver: ['4.1.00']
     runs-on: ubuntu-20.04
     container: ghcr.io/ecp-copa/ci-containers/cuda:12.2.0
     steps:
@@ -144,7 +144,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: ECP-CoPA/Cabana
-          ref: 0.6.1
+          ref: cd7075fd66bc346c8f28831cfb5b0ea650cf9892
           path: cabana
       - name: Build Cabana
         working-directory: cabana
