@@ -86,6 +86,10 @@ class CabanaPFRunner {
         return timesteps_done;
     }
 
+    double get_time_done() const {
+        return dt * timesteps_done;
+    }
+
     // Children inherit from this class and implement these:
     virtual void initialize() {} // Called once, before taking the first timestep
     virtual void step() {}       // Called to take a timestep
