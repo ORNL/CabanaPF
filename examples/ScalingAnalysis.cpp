@@ -22,7 +22,7 @@ int main(int argc, char* argv[]) {
             for (int i = 3; i < argc; i++)
                 runs.push_back(std::stoi(argv[i]));
         } catch (std::invalid_argument const&) {
-            std::cout << "Usage: ./PerformanceRuns <dt> <end time> <grid points> [grid points ...]" << std::endl;
+            std::cout << "Usage: ./ScalingAnalysis <dt> <end time> <grid points> [grid points ...]" << std::endl;
             return 1;
         }
 
@@ -32,7 +32,7 @@ int main(int argc, char* argv[]) {
             std::cout << "Running " << runs[i] << " grid points" << std::endl;
             for (int reps = 0; reps < 5; reps++) {
                 timer.start(i);
-                PFHub1aPeriodic simul(runs[i], dt);
+                PFHub1aCHiMaD2023 simul(runs[i], dt);
                 simul.run_until_time(end_time);
                 timer.stop(i);
             }
