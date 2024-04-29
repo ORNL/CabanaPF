@@ -243,23 +243,6 @@ class PFHub1aCustom : public PFHub1aBase {
 // Our periodic proposal from the August 2023 CHiMaD meeting
 class PFHub1aCHiMaD2023 : public PFHub1aCustom {
   public:
-    void initial_conditions() override {
-        const auto c = vars[0]; // get View for scope capture
-        const auto delta = cell_size;
-        node_parallel_for(
-            "periodic initial conditions", KOKKOS_LAMBDA(const int i, const int j) {
-                // initialize c:
-                const double x = delta * i;
-                const double y = delta * j;
-                c(i, j, 0) = .5 + .01 * (Kokkos::cos(3 * M_PI * x / 100) * Kokkos::cos(M_PI * y / 25) +
-                                         Kokkos::cos(M_PI * x / 25) * Kokkos::cos(3 * M_PI * y / 100) *
-                                             Kokkos::cos(M_PI * x / 25) * Kokkos::cos(3 * M_PI * y / 100) +
-                                         Kokkos::cos(M_PI * x / 100 - M_PI * y / 20) *
-                                             Kokkos::cos(M_PI * x / 50 - M_PI * y / 100));
-                c(i, j, 1) = 0;
-            });
-    }
-
     std::string subproblem_name() const override {
         return "1aCHiMaD2023";
     }
