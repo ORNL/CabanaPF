@@ -35,6 +35,8 @@ TEST(PFHub1a, Initialization) {
     EXPECT_DOUBLE_EQ(0.5013653249684705, results(33, 6, 0));
     EXPECT_DOUBLE_EQ(0.5173210860478162, results(84, 82, 0));
     EXPECT_DOUBLE_EQ(0.48901386854420836, results(26, 42, 0));
+
+    EXPECT_NEAR(319.1097966931092, simulation.free_energy(), 1e-9);
 }
 
 TEST(PFHub1a, OneTimestep) {
@@ -73,6 +75,8 @@ TEST(PFHub1a, AllTimestep) {
     EXPECT_NEAR(0.4279715141345520, results(40, 78, 0), 1e-9);
     EXPECT_NEAR(0.6966615561225524, results(70, 72, 0), 1e-9);
     EXPECT_NEAR(0.6482746495041702, results(67, 7, 0), 1e-9);
+
+    EXPECT_NEAR(112.93083808600322, simulation.free_energy(), 1e-9);
 }
 
 TEST(PFVariables, saveload) {
