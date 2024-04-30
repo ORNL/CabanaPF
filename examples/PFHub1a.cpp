@@ -17,7 +17,7 @@ int main(int argc, char* argv[]) {
             std::unique_ptr<PFHub1aBase> simulation;
             std::string problem_name(argv[1]);
             if (problem_name == "benchmark")
-                simulation = std::make_unique<PFHub1aBenchmark>(grid_points, dt);
+                simulation = std::make_unique<PFHub1aBenchmark2017>(grid_points, dt);
             else if (problem_name == "2023")
                 simulation = std::make_unique<PFHub1aCHiMaD2023>(grid_points, dt);
             else

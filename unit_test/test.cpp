@@ -13,8 +13,8 @@ These results that are being tested against come from the python implementation 
 PFHub1a Available here (ORNL internal): https://code.ornl.gov/71d/phase-field-example-codes Most points were randomly
 selected
 */
-TEST(PFHub1a, Initialization) {
-    PFHub1aBenchmark simulation(96, .5);
+TEST(PFHub1aBenchmark2017, Initialization) {
+    PFHub1aBenchmark2017 simulation(96, .5);
     simulation.initialize(); // trigger initialization
     auto results = simulation.get_cpu_view();
     //"true results" come from python implementation (see previous comment)
@@ -40,7 +40,7 @@ TEST(PFHub1a, Initialization) {
 }
 
 TEST(PFHub1a, OneTimestep) {
-    PFHub1aBenchmark simulation(96, .5);
+    PFHub1aBenchmark2017 simulation(96, .5);
     simulation.run_until_steps(1);
     auto results = simulation.get_cpu_view();
     // test at extreme points and 10 random points.  Correct values come from python implementation (see above)
@@ -59,7 +59,7 @@ TEST(PFHub1a, OneTimestep) {
 }
 
 TEST(PFHub1a, AllTimestep) {
-    PFHub1aBenchmark simulation(96, .5);
+    PFHub1aBenchmark2017 simulation(96, .5);
     simulation.run_for_steps(500);
     auto results = simulation.get_cpu_view();
     // as before, (0,0), (95,95), and 10 random points, testing against python
@@ -106,9 +106,9 @@ TEST(PFVariables, saveload) {
     }
 }
 
-// Similar to above, the python implementation was modified to use the periodic initial conditions
-TEST(PFHub1aCHiMaD2023, FullRun) {
-    PFHub1aCHiMaD2023 simulation(96, .5);
+// Helper function to test CHiMaD2023 proposal and PFHub1aCustom's recreation of those
+template <class Problem>
+void test_periodic(Problem& simulation) {
     simulation.initialize();
     auto results = simulation.get_cpu_view();
     EXPECT_NEAR(0.53, results(0, 0, 0), 1e-9);
@@ -134,32 +134,16 @@ TEST(PFHub1aCHiMaD2023, FullRun) {
     EXPECT_NEAR(0.3520246964993546, results(74, 32, 0), 1e-9);
 }
 
+// Similar to above, the python implementation was modified to use the periodic initial conditions
+TEST(PFHub1aCHiMaD2023, FullRun) {
+    PFHub1aCHiMaD2023 simulation(96, .5);
+    test_periodic(simulation);
+}
+
 // This is a copy of the PFHub1aCHiMaD2023 test case, using PFHub1aCustom to recreate those conditions
 TEST(PFHub1aCustom, 2023) {
     PFHub1aCustom simulation(96, .5, 3, 4, 8, 6, 1, 5, 2, 1, 0, 0);
-    simulation.initialize();
-    auto results = simulation.get_cpu_view();
-    EXPECT_NEAR(0.53, results(0, 0, 0), 1e-9);
-    EXPECT_NEAR(0.5280872555770657, results(95, 95, 0), 1e-9);
-    EXPECT_NEAR(0.49625, results(56, 52, 0), 1e-9);
-    EXPECT_NEAR(0.5096103712433676, results(39, 36, 0), 1e-9);
-    EXPECT_NEAR(0.5122826024701564, results(46, 40, 0), 1e-9);
-
-    simulation.run_until_time(.5);
-    results = simulation.get_cpu_view();
-    EXPECT_NEAR(0.5316722086053631, results(0, 0, 0), 1e-9);
-    EXPECT_NEAR(0.5296339912527902, results(95, 95, 0), 1e-9);
-    EXPECT_NEAR(0.5155424558547776, results(24, 46, 0), 1e-9);
-    EXPECT_NEAR(0.510243048825588, results(87, 78, 0), 1e-9);
-    EXPECT_NEAR(0.5092351158827323, results(6, 19, 0), 1e-9);
-
-    simulation.run_until_steps(500);
-    results = simulation.get_cpu_view();
-    EXPECT_NEAR(0.6993369106233298, results(0, 0, 0), 1e-9);
-    EXPECT_NEAR(0.7014658707445363, results(95, 95, 0), 1e-9);
-    EXPECT_NEAR(0.6427344294446387, results(0, 28, 0), 1e-9);
-    EXPECT_NEAR(0.6076503841641254, results(35, 65, 0), 1e-9);
-    EXPECT_NEAR(0.3520246964993546, results(74, 32, 0), 1e-9);
+    test_periodic(simulation);
 }
 
 int main(int argc, char** argv) {

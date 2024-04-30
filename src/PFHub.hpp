@@ -177,7 +177,7 @@ class PFHub1aBase : public CabanaPFRunner<2> {
     virtual ~PFHub1aBase() {}
 };
 
-class PFHub1aBenchmark : public PFHub1aBase {
+class PFHub1aBenchmark2017 : public PFHub1aBase {
   public:
     void initial_conditions() override {
         const auto c = vars[0]; // get View for scope capture
@@ -199,7 +199,7 @@ class PFHub1aBenchmark : public PFHub1aBase {
         return "1aBenchmark";
     }
 
-    PFHub1aBenchmark(int grid_points, double dt) : PFHub1aBase{grid_points, dt} {}
+    PFHub1aBenchmark2017(int grid_points, double dt) : PFHub1aBase{grid_points, dt} {}
 };
 
 class PFHub1aCustom : public PFHub1aBase {
