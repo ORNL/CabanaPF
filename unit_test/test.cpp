@@ -2,6 +2,7 @@
 
 #include <Cabana_Core.hpp>
 #include <Cabana_Grid.hpp>
+#include <CommandLine.hpp>
 #include <PFHub.hpp>
 #include <PFVariables.hpp>
 
@@ -144,6 +145,79 @@ TEST(PFHub1aCHiMaD2023, FullRun) {
 TEST(PFHub1aCustom, 2023) {
     PFHub1aCustom simulation(96, .5, 3, 4, 8, 6, 1, 5, 2, 1, 0, 0);
     test_periodic(simulation);
+}
+
+// helpers for testing command line arguments
+char** create_argv(int argc, ...) {
+    char** argv = new char*[argc + 1];
+    va_list args;
+    va_start(args, argc);
+    for (int i = 0; i < argc; i++) {
+        const char* arg = va_arg(args, const char*);
+        argv[i] = new char[strlen(arg) + 1];
+        strcpy(argv[i], arg);
+    }
+    argv[argc] = nullptr;
+    va_end(args);
+    return argv;
+}
+void destroy_argv(char** argv) {
+    for (int i = 0; argv[i] != nullptr; i++)
+        delete[] argv[i];
+    delete[] argv;
+}
+
+TEST(CommandLineInput, Parsing) {
+    char** argv =
+        create_argv(17, "./Test", "--grid", "40", "--endoutput", "15", "--dt", ".14159", "--log", "--majoroutputs", "6",
+                    "--minoroutputs", "60", "--startoutput", "10", "--endtime", "225.289", "--outputatzero");
+    CommandLineInput input;
+    input.read_command_line(17, argv);
+    ASSERT_EQ(40, input.grid_points);
+    ASSERT_NEAR(.14159, input.dt, 1e-9);
+    ASSERT_NEAR(225.289, input.end_time, 1e-9);
+    ASSERT_EQ(6, input.major_outputs);
+    ASSERT_EQ(60, input.minor_outputs);
+    ASSERT_EQ(10, input.start_output);
+    ASSERT_EQ(15, input.end_output);
+    ASSERT_TRUE(input.log_scale);
+    ASSERT_TRUE(input.output_at_zero);
+    destroy_argv(argv);
+}
+
+TEST(CommandLineInput, Verifying) {
+    char** argv;
+    // Missing required argument:
+    argv = create_argv(5, "./Test", "--grid", "250", "--dt", ".1");
+    ASSERT_THROW(
+        {
+            CommandLineInput input;
+            input.read_command_line(5, argv);
+        },
+        std::invalid_argument);
+    destroy_argv(argv);
+
+    // Bad output range:
+    argv = create_argv(11, "./Test", "--grid", "250", "--dt", ".1", "--endtime", "250", "--startoutput", "300",
+                       "--minoroutputs", "100");
+    ASSERT_THROW(
+        {
+            CommandLineInput input;
+            input.read_command_line(11, argv);
+        },
+        std::invalid_argument);
+    destroy_argv(argv);
+
+    // Log-scale starting at 0
+    argv =
+        create_argv(5, "./Test", "--grid", "250", "--dt", ".1", "--endtime", "250", "--log", "--minoroutputs", "100");
+    ASSERT_THROW(
+        {
+            CommandLineInput input;
+            input.read_command_line(5, argv);
+        },
+        std::invalid_argument);
+    destroy_argv(argv);
 }
 
 int main(int argc, char** argv) {
