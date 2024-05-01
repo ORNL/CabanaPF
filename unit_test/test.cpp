@@ -220,6 +220,44 @@ TEST(CommandLineInput, Verifying) {
     destroy_argv(argv);
 }
 
+class OutputTester : public CabanaPFRunner<2> {
+  public:
+    int init_called = 0;
+    int n_major_outputs = 0;
+    int n_minor_outputs = 0;
+
+    void initialize() override {
+        init_called = true;
+    }
+    void step() override {}
+    void minor_output() override {
+        n_minor_outputs++;
+    }
+    void major_output() override {
+        n_major_outputs++;
+    }
+
+    OutputTester() : CabanaPFRunner(10, 10, .1) {}
+};
+
+TEST(Output, Output) {
+    OutputTester output_tester;
+    output_tester.add_output(3, true);
+    output_tester.add_output(3, false);
+    output_tester.add_output(5, true);
+    output_tester.add_output(3, false);
+    output_tester.add_output(0, false);
+    // should have initialized automatically due to outputting at t=0:
+    ASSERT_EQ(1, output_tester.init_called);
+    ASSERT_EQ(1, output_tester.n_minor_outputs);
+    ASSERT_EQ(0, output_tester.n_major_outputs);
+    // do a full run:
+    output_tester.run_for_time(5);
+    ASSERT_EQ(1, output_tester.init_called);
+    ASSERT_EQ(3, output_tester.n_minor_outputs);
+    ASSERT_EQ(2, output_tester.n_major_outputs);
+}
+
 int main(int argc, char** argv) {
     MPI_Init(&argc, &argv);
     Kokkos::initialize(argc, argv);
