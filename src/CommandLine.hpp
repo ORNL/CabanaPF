@@ -58,8 +58,11 @@ struct CommandLineInput {
             {"outputatzero", no_argument, nullptr, 'z'},       {0, 0, 0, 0}};
         while ((option_code = getopt_long(argc, argv, "d:n:t:m:o:s:e:lz", long_options, nullptr)) != -1)
             read_argument(option_code);
-        if (end_output == 0) // default to endtime
+        // endtime and endoutput default to each other if only one is specified:
+        if (end_output == 0 && end_time != 0)
             end_output = end_time;
+        if (end_time == 0 && end_output != 0)
+            end_time = end_output;
         if (verify)
             verify_options();
         return optind;
