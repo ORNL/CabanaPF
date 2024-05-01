@@ -258,6 +258,24 @@ TEST(Output, Output) {
     ASSERT_EQ(2, output_tester.n_major_outputs);
 }
 
+TEST(CommandLineInput, set_runner_outputs) {
+    char** argv = create_argv(15, "./Test", "--grid", "40", "--startoutput", "2", "--endoutput", "10", "--dt", ".1",
+                              "--majoroutputs", "2", "--minoroutputs", "5", "--endtime", "10");
+    CommandLineInput input;
+    input.read_command_line(15, argv);
+
+    OutputTester output_tester;
+    input.add_outputs_to_runner(output_tester);
+    // partway through:
+    output_tester.run_for_time(4);
+    ASSERT_EQ(1, output_tester.n_major_outputs);
+    ASSERT_EQ(2, output_tester.n_minor_outputs);
+    // end:
+    output_tester.run_until_time(10);
+    ASSERT_EQ(2, output_tester.n_major_outputs);
+    ASSERT_EQ(5, output_tester.n_minor_outputs);
+}
+
 int main(int argc, char** argv) {
     MPI_Init(&argc, &argv);
     Kokkos::initialize(argc, argv);

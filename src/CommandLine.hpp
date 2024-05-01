@@ -21,6 +21,30 @@ struct CommandLineInput {
     bool log_scale = false;
     bool output_at_zero = false;
 
+    // add outputs to the runner
+    template <class Runner>
+    void add_outputs_to_runner(Runner& runner) {
+        if (output_at_zero && start_output > 0) {
+            runner.add_output(0, true);
+            runner.add_output(0, false);
+        }
+
+        double low = log_scale ? std::log10(start_output) : start_output;
+        double high = log_scale ? std::log10(end_output) : end_output;
+        for (int i = 0; i < major_outputs; i++) {
+            double time = low + i * (high - low) / (major_outputs - 1);
+            if (log_scale)
+                time = std::pow(10, time);
+            runner.add_output(time, true);
+        }
+        for (int i = 0; i < minor_outputs; i++) {
+            double time = low + i * (high - low) / (minor_outputs - 1);
+            if (log_scale)
+                time = std::pow(10, time);
+            runner.add_output(time, false);
+        }
+    }
+
     // reads command line options.  Returns the index of the first non-option argument
     int read_command_line(int argc, char* argv[], bool verify = true) {
         optind = 1; // reset library's state.  Needed for testing and if user wants to read arguments 2+ times
