@@ -13,8 +13,8 @@ These results that are being tested against come from the python implementation 
 PFHub1a Available here (ORNL internal): https://code.ornl.gov/71d/phase-field-example-codes Most points were randomly
 selected
 */
-TEST(PFHub1a, Initialization) {
-    PFHub1aBenchmark simulation(96, .5);
+TEST(PFHub1aBenchmark2017, Initialization) {
+    PFHub1aBenchmark2017 simulation(96, .5);
     simulation.initialize(); // trigger initialization
     auto results = simulation.get_cpu_view();
     //"true results" come from python implementation (see previous comment)
@@ -35,10 +35,12 @@ TEST(PFHub1a, Initialization) {
     EXPECT_DOUBLE_EQ(0.5013653249684705, results(33, 6, 0));
     EXPECT_DOUBLE_EQ(0.5173210860478162, results(84, 82, 0));
     EXPECT_DOUBLE_EQ(0.48901386854420836, results(26, 42, 0));
+
+    EXPECT_NEAR(319.1097966931092, simulation.free_energy(), 1e-9);
 }
 
 TEST(PFHub1a, OneTimestep) {
-    PFHub1aBenchmark simulation(96, .5);
+    PFHub1aBenchmark2017 simulation(96, .5);
     simulation.run_until_steps(1);
     auto results = simulation.get_cpu_view();
     // test at extreme points and 10 random points.  Correct values come from python implementation (see above)
@@ -57,7 +59,7 @@ TEST(PFHub1a, OneTimestep) {
 }
 
 TEST(PFHub1a, AllTimestep) {
-    PFHub1aBenchmark simulation(96, .5);
+    PFHub1aBenchmark2017 simulation(96, .5);
     simulation.run_for_steps(500);
     auto results = simulation.get_cpu_view();
     // as before, (0,0), (95,95), and 10 random points, testing against python
@@ -73,6 +75,8 @@ TEST(PFHub1a, AllTimestep) {
     EXPECT_NEAR(0.4279715141345520, results(40, 78, 0), 1e-9);
     EXPECT_NEAR(0.6966615561225524, results(70, 72, 0), 1e-9);
     EXPECT_NEAR(0.6482746495041702, results(67, 7, 0), 1e-9);
+
+    EXPECT_NEAR(112.93083808600322, simulation.free_energy(), 1e-9);
 }
 
 TEST(PFVariables, saveload) {
@@ -102,9 +106,9 @@ TEST(PFVariables, saveload) {
     }
 }
 
-// Similar to above, the python implementation was modified to use the periodic initial conditions
-TEST(PFHub1aPeriodic, periodic) {
-    PFHub1aPeriodic simulation(96, .5);
+// Helper function to test CHiMaD2023 proposal and PFHub1aCustom's recreation of those
+template <class Problem>
+void test_periodic(Problem& simulation) {
     simulation.initialize();
     auto results = simulation.get_cpu_view();
     EXPECT_NEAR(0.53, results(0, 0, 0), 1e-9);
@@ -128,6 +132,18 @@ TEST(PFHub1aPeriodic, periodic) {
     EXPECT_NEAR(0.6427344294446387, results(0, 28, 0), 1e-9);
     EXPECT_NEAR(0.6076503841641254, results(35, 65, 0), 1e-9);
     EXPECT_NEAR(0.3520246964993546, results(74, 32, 0), 1e-9);
+}
+
+// Similar to above, the python implementation was modified to use the periodic initial conditions
+TEST(PFHub1aCHiMaD2023, FullRun) {
+    PFHub1aCHiMaD2023 simulation(96, .5);
+    test_periodic(simulation);
+}
+
+// This is a copy of the PFHub1aCHiMaD2023 test case, using PFHub1aCustom to recreate those conditions
+TEST(PFHub1aCustom, 2023) {
+    PFHub1aCustom simulation(96, .5, 3, 4, 8, 6, 1, 5, 2, 1, 0, 0);
+    test_periodic(simulation);
 }
 
 int main(int argc, char** argv) {

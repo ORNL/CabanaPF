@@ -17,16 +17,16 @@ int main(int argc, char* argv[]) {
             std::unique_ptr<PFHub1aBase> simulation;
             std::string problem_name(argv[1]);
             if (problem_name == "benchmark")
-                simulation = std::make_unique<PFHub1aBenchmark>(grid_points, dt);
-            else if (problem_name == "periodic")
-                simulation = std::make_unique<PFHub1aPeriodic>(grid_points, dt);
+                simulation = std::make_unique<PFHub1aBenchmark2017>(grid_points, dt);
+            else if (problem_name == "2023")
+                simulation = std::make_unique<PFHub1aCHiMaD2023>(grid_points, dt);
             else
                 throw std::invalid_argument("");
 
             simulation->run_until_time(end_time);
             simulation->output_c();
         } catch (std::invalid_argument const&) {
-            std::cout << "Usage: ./PFHub1a <benchmark|periodic> <grid points> <dt> <end time>" << std::endl;
+            std::cout << "Usage: ./PFHub1a <benchmark|2023> <grid points> <dt> <end time>" << std::endl;
         }
     }
     MPI_Finalize();
