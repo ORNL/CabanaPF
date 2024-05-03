@@ -87,21 +87,24 @@ TEST(PFVariables, saveload) {
         Cabana::Grid::createGlobalGrid(MPI_COMM_WORLD, global_mesh, std::array<bool, 2>{true, true}, partitioner);
     auto local_grid = Cabana::Grid::createLocalGrid(global_grid, 0);
     auto layout = createArrayLayout(local_grid, 2, Cabana::Grid::Node());
-    PFVariables vars(layout, std::array<std::string, 1>{"a"});
+    PFVariables vars(layout, std::array<std::string, 1>{"save"});
+    auto host_view = vars.host_view(0);
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
-            vars[0](i, j, 0) = 10 * i + j;
-            vars[0](i, j, 1) = -.0005;
+            host_view(i, j, 0) = 10 * i + j;
+            host_view(i, j, 1) = -.0005;
         }
     }
+    Cabana::Grid::create_mirror_view_and_copy(*vars.arrays[0], host_view);
     vars.save(0, "Test", 0);
 
-    PFVariables from_file(layout, std::array<std::string, 1>{"a"});
+    PFVariables from_file(layout, std::array<std::string, 1>{"load"});
     from_file.load(0, "Test", 0);
+    auto host_view_file = from_file.host_view(0);
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
-            EXPECT_EQ(vars[0](i, j, 0), from_file[0](i, j, 0));
-            EXPECT_EQ(vars[0](i, j, 1), from_file[0](i, j, 1));
+	    EXPECT_EQ(host_view(i, j, 0), host_view_file(i, j, 0));
+	    EXPECT_EQ(host_view(i, j, 1), host_view_file(i, j, 1));
         }
     }
 }

@@ -82,17 +82,20 @@ class PFVariables {
         // open the file:
         std::fstream infile(name.str(), std::fstream::in | std::fstream::binary);
         // read it:
-        const auto view = arrays[index]->view();
+	typename GridArray::element_type::view_type::HostMirror view_read( "read_array", array_size[0], array_size[1], 2 );
         double buffer[2];
         for (int j = 0; j < array_size[1]; j++) {
             for (int i = 0; i < array_size[0]; i++) {
                 infile.read((char*)buffer, 2 * sizeof(double));
-                view(i, j, 0) = buffer[0];
-                view(i, j, 1) = buffer[1];
+                view_read(i, j, 0) = buffer[0];
+                view_read(i, j, 1) = buffer[1];
             }
             // since the grid is periodic, it writes the first value in the row again, so "burn it off":
             infile.read((char*)buffer, 2 * sizeof(double));
         }
+	// Copy back to device.
+	// TODO: use Cabana mirror wrapper when available.
+	Cabana::Grid::create_mirror_view_and_copy(*arrays[index], view_read);
     }
 };
 
