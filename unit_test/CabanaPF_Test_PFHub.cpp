@@ -2,6 +2,7 @@
 
 #include <Cabana_Core.hpp>
 #include <Cabana_Grid.hpp>
+#include <CommandLine.hpp>
 #include <PFHub.hpp>
 #include <PFVariables.hpp>
 
@@ -77,33 +78,6 @@ TEST(PFHub1a, AllTimestep) {
     EXPECT_NEAR(0.6482746495041702, results(67, 7, 0), 1e-9);
 
     EXPECT_NEAR(112.93083808600322, simulation.free_energy(), 1e-9);
-}
-
-TEST(PFVariables, saveload) {
-    auto global_mesh = Cabana::Grid::createUniformGlobalMesh(std::array<double, 2>{0, 0}, std::array<double, 2>{6, 6},
-                                                             std::array<int, 2>{3, 3});
-    Cabana::Grid::DimBlockPartitioner<2> partitioner;
-    auto global_grid =
-        Cabana::Grid::createGlobalGrid(MPI_COMM_WORLD, global_mesh, std::array<bool, 2>{true, true}, partitioner);
-    auto local_grid = Cabana::Grid::createLocalGrid(global_grid, 0);
-    auto layout = createArrayLayout(local_grid, 2, Cabana::Grid::Node());
-    PFVariables vars(layout, std::array<std::string, 1>{"a"});
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            vars[0](i, j, 0) = 10 * i + j;
-            vars[0](i, j, 1) = -.0005;
-        }
-    }
-    vars.save(0, "Test", 0);
-
-    PFVariables from_file(layout, std::array<std::string, 1>{"a"});
-    from_file.load(0, "Test", 0);
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            EXPECT_EQ(vars[0](i, j, 0), from_file[0](i, j, 0));
-            EXPECT_EQ(vars[0](i, j, 1), from_file[0](i, j, 1));
-        }
-    }
 }
 
 // Helper function to test CHiMaD2023 proposal and PFHub1aCustom's recreation of those

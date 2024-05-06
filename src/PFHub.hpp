@@ -173,6 +173,18 @@ class PFHub1aBase : public CabanaPFRunner<2> {
         vars.save(0, s.str(), get_timesteps_done(), get_time_done());
     }
 
+    /*
+        For minor output, print the free energy in the PFHub csv format
+        For major output, write the c grid to a file
+    */
+
+    void minor_output() override {
+        std::cout << get_time_done() << "," << free_energy() << std::endl;
+    }
+    void major_output() override {
+        output_c();
+    }
+
     // needed to allow polymorphism:
     virtual ~PFHub1aBase() {}
 };

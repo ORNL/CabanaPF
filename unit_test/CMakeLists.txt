@@ -1,3 +1,6 @@
-add_executable(CabanaPF_Test_PFHub1a test.cpp)
+add_executable(CabanaPF_Test_PFHub1a CabanaPF_Test_PFHub.cpp)
 target_link_libraries(CabanaPF_Test_PFHub1a LINK_PUBLIC CabanaPF ${gtest_target})
 add_test(NAME PFHub1a COMMAND ${NONMPI_PRECOMMAND} CabanaPF_Test_PFHub1a)
+add_executable(CabanaPF_Test_Core CabanaPF_Test_Core.cpp)
+target_link_libraries(CabanaPF_Test_Core LINK_PUBLIC CabanaPF ${gtest_target})
+add_test(NAME Core COMMAND ${NONMPI_PRECOMMAND} CabanaPF_Test_Core)

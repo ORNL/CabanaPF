@@ -2,6 +2,7 @@
 #define RUNNER_H
 
 #include <Cabana_Grid.hpp>
+#include <queue>
 
 namespace CabanaPF {
 
@@ -17,6 +18,10 @@ class CabanaPFRunner {
     std::shared_ptr<Cabana::Grid::ArrayLayout<Cabana::Grid::Node, Mesh>> layout;
     int timesteps_done;
     bool have_initialized;
+
+    using MinHeap = std::priority_queue<int, std::vector<int>, std::greater<int>>;
+    MinHeap output_steps_major;
+    MinHeap output_steps_minor;
 
   public:
     const int grid_points;
@@ -55,6 +60,11 @@ class CabanaPFRunner {
         return result;
     }
 
+    // Returns the number of timesteps closest to the given time, based on dt
+    int closest_timesteps(const double time) {
+        return round(time / dt);
+    }
+
     // Do a certain number of timesteps:
     void run_for_steps(const int timesteps) {
         if (!have_initialized) {
@@ -64,12 +74,21 @@ class CabanaPFRunner {
         for (int i = 0; i < timesteps; i++) {
             step();
             timesteps_done++;
+            // check if we output this timestep:
+            while (!output_steps_major.empty() && output_steps_major.top() == timesteps_done) {
+                output_steps_major.pop();
+                major_output();
+            }
+            while (!output_steps_minor.empty() && output_steps_minor.top() == timesteps_done) {
+                output_steps_minor.pop();
+                minor_output();
+            }
         }
     }
 
     // runs the closest number of timesteps to time/dt
     void run_for_time(const double time) {
-        run_for_steps(round(time / dt));
+        run_for_steps(closest_timesteps(time));
     }
 
     // runs as many timesteps as are needed to have done a certain number
@@ -79,7 +98,7 @@ class CabanaPFRunner {
 
     // runs until timesteps_done*dt is as close as possible to specified time
     void run_until_time(const double time) {
-        run_for_steps(round(time / dt - timesteps_done));
+        run_for_steps(closest_timesteps(time) - timesteps_done);
     }
 
     int get_timesteps_done() const {
@@ -90,9 +109,34 @@ class CabanaPFRunner {
         return dt * timesteps_done;
     }
 
+    void add_output(double time, bool is_major) {
+        int step = closest_timesteps(time);
+        if (step < timesteps_done)
+            throw std::logic_error("Attempted to add output prior to current simulation time");
+        else if (step == timesteps_done) {
+            // user's output at t=0 likely depends on PF variables, so we need to initialize if so:
+            if (timesteps_done == 0 && !have_initialized) {
+                initialize();
+                have_initialized = true;
+            }
+            if (is_major)
+                major_output();
+            else
+                minor_output();
+        } else {
+            if (is_major)
+                output_steps_major.push(step);
+            else
+                output_steps_minor.push(step);
+        }
+    }
+
     // Children inherit from this class and implement these:
-    virtual void initialize() {} // Called once, before taking the first timestep
-    virtual void step() {}       // Called to take a timestep
+    virtual void initialize() {}   // Called once, before taking the first timestep
+    virtual void step() {}         // Called to take a timestep
+    virtual void major_output() {} // Called a number of times based on user's command line arguments
+    virtual void minor_output() {
+    } // As above, but is a lighter operation (like printing free energy instead of writing a grid)
 };
 
 } // namespace CabanaPF
