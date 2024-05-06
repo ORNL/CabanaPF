@@ -33,12 +33,18 @@ int main(int argc, char* argv[]) {
                                                              Ns[4], Ns[5], Ns[6], Ns[7], Ns[8], Ns[9]);
             } else
                 throw std::invalid_argument("unrecognized problem name");
-
+            // register when to output:
             parser.add_outputs_to_runner(*simulation);
+            // do the run:
             simulation->run_until_time(parser.end_time);
         } catch (const std::invalid_argument& e) {
             std::cerr << e.what() << std::endl;
-            std::cerr << "Usage: ./PFHub1a" << CommandLineInput::USAGE << " <2017|2023|custom> [custom coefficients]"
+            std::cerr << "Run a version of the PFHub1a benchmark\nUsage: ./PFHub1a\n"
+                      << CommandLineInput::HELP
+                      << "<2017|2023|custom> [custom coefficients]\n"
+                         "\t2017: The established benchmark\n"
+                         "\t2023: Our modification proposed at the August 2023 meeting\n"
+                         "\tcustom: Infinitely differentiable version with custom coefficients\n"
                       << std::endl;
         }
     }

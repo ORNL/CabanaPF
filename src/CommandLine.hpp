@@ -10,6 +10,20 @@ struct CommandLineInput {
     inline static const std::string USAGE =
         " --grid <grid points> --dt <timestep size> --endtime <end time> [--majoroutputs <count>] [--minoroutputs "
         "<count>] [--startoutput <time>] [--endoutput <time>] [--log] [--outputatzero]";
+    inline static const std::string HELP =
+        "--grid <grid points>\n\tNumber of grid points in each dimension\n"
+        "--dt <timestep size>\n\tSize of each timestep\n"
+        "--endtime <end time>\n\tLength of simulation. Defaults to endoutput, but at least one must be specified\n"
+        "[--majoroutputs <count>]\n\tOptional number of (Runner-defined) significant outputs (e.g. file write) to "
+        "perform\n"
+        "[--minoroutputs <count>]\n\tOptional number of (Runner-defined) lesser outputs (e.g. free energy calculation) "
+        "to perform\n"
+        "[--startoutput <time>]\n\tSimulation time to start outputting. Inclusive, so an output will happen at this "
+        "time. Defaults to 0\n"
+        "[--endoutput <time>]\n\tSimulation time to stop outputting. Inclusive, so an output will happen at this time. "
+        "Defaults to endtime\n"
+        "[--log]\n\tFlag to space outputs logarithmically. If not specified, spacing is linear\n"
+        "[--outputatzero]\n\tFlag to include an output at t=0, independent of the other options\n";
 
     int grid_points = 0;
     double dt = 0;
