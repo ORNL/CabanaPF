@@ -1,7 +1,5 @@
-#include <PFHub.hpp>
-
+#include <CabanaPF_PFHub.hpp>
 #include <Cabana_BenchmarkUtils.hpp>
-
 #include <cmath>
 
 using namespace CabanaPF;

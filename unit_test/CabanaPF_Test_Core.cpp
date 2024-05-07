@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 
+#include <CabanaPF_CommandLine.hpp>
+#include <CabanaPF_PFVariables.hpp>
 #include <Cabana_Core.hpp>
 #include <Cabana_Grid.hpp>
-#include <CommandLine.hpp>
-#include <PFVariables.hpp>
 
 using namespace CabanaPF;
 
