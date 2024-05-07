@@ -1,7 +1,7 @@
 #ifndef COMMANDLINE_H
 #define COMMANDLINE_H
 
-#include <Runner.hpp>
+#include <CabanaPF_Runner.hpp>
 #include <getopt.h>
 
 namespace CabanaPF {

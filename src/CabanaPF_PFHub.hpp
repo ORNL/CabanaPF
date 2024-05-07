@@ -1,9 +1,9 @@
 #ifndef PFHUB_H
 #define PFHUB_H
 
+#include <CabanaPF_PFVariables.hpp>
+#include <CabanaPF_Runner.hpp>
 #include <Cabana_Grid.hpp>
-#include <PFVariables.hpp>
-#include <Runner.hpp>
 
 namespace CabanaPF {
 
