@@ -21,7 +21,7 @@ jobs:
         backend: ['SERIAL', 'OPENMP']
         cmake_build_type: ['Debug', 'Release']
         kokkos_ver: ['4.1.00']
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     container: ghcr.io/ecp-copa/ci-containers/${{ matrix.distro }}
     steps:
       - name: Checkout kokkos
@@ -103,7 +103,7 @@ jobs:
         cxx: ['nvcc']
         cmake_build_type: ['Release']
         kokkos_ver: ['4.1.00']
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     container: ghcr.io/ecp-copa/ci-containers/cuda:12.2.0
     steps:
       - name: Checkout kokkos
